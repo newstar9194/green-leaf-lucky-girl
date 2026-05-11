@@ -93,12 +93,17 @@ button {
 .action-panel {
   position: absolute;
   z-index: 4;
-  left: 14px;
-  right: 14px;
-  bottom: 14px;
+  left: 12px;
+  right: 12px;
+  bottom: max(12px, env(safe-area-inset-bottom));
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
+  padding: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.44);
+  backdrop-filter: blur(10px);
 }
 
 .action-panel button,
@@ -151,7 +156,9 @@ button {
 }
 
 .fortune-box {
-  width: min(100%, 370px);
+  width: min(100%, 430px);
+  max-height: calc(100dvh - 42px);
+  overflow-y: auto;
   padding: 22px;
   border: 3px solid rgba(255, 255, 255, 0.85);
   border-radius: 24px;
@@ -169,15 +176,52 @@ button {
 
 .fortune-cards {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(var(--card-count, 2), minmax(0, 1fr));
   gap: 12px;
   margin: 12px 0;
 }
 
 .fortune-cards button {
-  min-height: 120px;
-  font-size: 54px;
+  display: grid;
+  min-height: 132px;
+  align-content: center;
+  justify-items: center;
+  gap: 6px;
+  padding: 12px 8px;
+  font-size: 18px;
   background: linear-gradient(145deg, #fff9c9, #ffd5c9);
+}
+
+.fortune-cards button.clover-card {
+  color: #207143;
+  background: linear-gradient(145deg, #edffcf, #baf7cf);
+}
+
+.fortune-cards button.tomato-card {
+  color: #9a3126;
+  background: linear-gradient(145deg, #fff1c7, #ffc8bc);
+}
+
+.card-face {
+  width: 70px;
+  height: 70px;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.5);
+  object-fit: cover;
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.5);
+}
+
+.clover-face {
+  display: grid;
+  place-items: center;
+  font-size: 38px;
+}
+
+.card-sound {
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.2;
 }
 
 .fortune-cards button.picked {
@@ -384,11 +428,36 @@ button {
     left: 10px;
     right: 10px;
     bottom: max(10px, env(safe-area-inset-bottom));
+    gap: 6px;
+    padding: 7px;
   }
 
   .action-panel button {
-    min-height: 42px;
+    min-height: 46px;
     font-size: 12px;
+  }
+
+  .fortune-modal {
+    padding: 14px;
+  }
+
+  .fortune-box {
+    padding: 16px;
+  }
+
+  .fortune-cards {
+    gap: 8px;
+  }
+
+  .fortune-cards button {
+    min-height: 118px;
+    padding: 9px 5px;
+  }
+
+  .card-face {
+    width: 58px;
+    height: 58px;
+    border-radius: 18px;
   }
 
   .publisher-content {
