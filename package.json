@@ -1,0 +1,29 @@
+{
+  "name": "lucky-tomato-game",
+  "version": "1.0.0",
+  "description": "",
+  "main": "game.js",
+  "scripts": {
+    "dev": "granite dev",
+    "build:web": "vite build",
+    "build": "ait build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/newstar9194/green-leaf-lucky-girl.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/newstar9194/green-leaf-lucky-girl/issues"
+  },
+  "homepage": "https://github.com/newstar9194/green-leaf-lucky-girl#readme",
+  "dependencies": {
+    "@apps-in-toss/web-framework": "^2.5.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.12"
+  },
+  "devDependencies": {}
+}

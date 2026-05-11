@@ -1,3 +1,8 @@
 .tools/
 
+.DS_Store
 .vercel
+node_modules/
+dist/
+.granite/
+*.ait
