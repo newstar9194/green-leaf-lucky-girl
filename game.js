@@ -210,6 +210,7 @@ let modalResumeOnClose = false;
 let pendingCloverBoost = false;
 let selectedTomatoCharacter = TOMATO_CHARACTERS[0];
 let cloverIntroTimer = null;
+let tomatoIntroTimer = null;
 let bgmContext = null;
 let bgmTimer = null;
 let bgmStep = 0;
@@ -925,9 +926,16 @@ function clearCloverIntroTimer() {
   cloverIntroTimer = null;
 }
 
+function clearTomatoIntroTimer() {
+  if (!tomatoIntroTimer) return;
+  window.clearTimeout(tomatoIntroTimer);
+  tomatoIntroTimer = null;
+}
+
 function openCloverFortuneModal() {
   pauseForModal();
   clearCloverIntroTimer();
+  clearTomatoIntroTimer();
   fortuneMode = "clover";
   pendingCloverBoost = false;
   fortuneModal.classList.remove("hidden");
@@ -948,27 +956,31 @@ function openTomatoFortuneModal(fromLuckyTomato = false) {
     return;
   }
   pauseForModal();
+  clearCloverIntroTimer();
+  clearTomatoIntroTimer();
   fortuneMode = "tomato";
   pendingCloverBoost = false;
   fortuneModal.classList.remove("hidden");
   fortuneCloseButton.textContent = "닫기";
-  fortuneModal.querySelector(".fortune-box").classList.remove("clover-result", "tomato-result");
-  fortuneLabelEl.textContent = fromLuckyTomato ? "대박 사건 발생" : "행운의 토마토 뽑기~!~!";
-  fortuneTitleEl.textContent = fromLuckyTomato
-    ? `헉! ${selectedTomatoCharacter.name}가 튀어나왔어요!`
-    : "토마토 카드 1장을 골라요";
+  const fortuneBox = fortuneModal.querySelector(".fortune-box");
+  fortuneBox.classList.remove("clover-result", "clover-intro", "clover-picker", "tomato-picker");
+  fortuneBox.classList.add("tomato-result", "tomato-intro");
+  fortuneLabelEl.textContent = fromLuckyTomato ? "토마토 파티 발생" : "행운의 토마토 파티~!~!";
+  fortuneTitleEl.textContent = "방토단이 우르르 춤춰요!";
   fortuneTextEl.textContent = fromLuckyTomato
-    ? "777개 전에 만난 개큰 행운이에요~!~! 카드 1장을 골라서 오늘의 운세를 바로 봐요!"
-    : `${selectedTomatoCharacter.name}가 자세한 운세를 준비했어요.`;
-  renderFortuneCards(1, "tomato");
+    ? "777개 전에 만난 개큰 행운이에요~!~! 토마토 파티가 끝나면 카드 2장 중 1장을 골라요!"
+    : "토마토 파티가 끝나면 카드 2장 중 1장을 골라요!";
+  renderTomatoPartyStage();
+  tomatoIntroTimer = window.setTimeout(showTomatoCardPicker, 2600);
 }
 
 function closeFortuneModal() {
   clearCloverIntroTimer();
+  clearTomatoIntroTimer();
   const shouldStartCloverBoost = pendingCloverBoost;
   pendingCloverBoost = false;
   fortuneModal.classList.add("hidden");
-  fortuneModal.querySelector(".fortune-box").classList.remove("clover-result", "tomato-result", "clover-intro", "clover-picker");
+  fortuneModal.querySelector(".fortune-box").classList.remove("clover-result", "tomato-result", "clover-intro", "clover-picker", "tomato-intro", "tomato-picker");
   if (modalResumeOnClose) running = true;
   modalResumeOnClose = false;
   if (shouldStartCloverBoost) startCloverBoost();
@@ -986,17 +998,30 @@ function showCloverCardPicker() {
   renderFortuneCards(3, "clover");
 }
 
+function showTomatoCardPicker() {
+  tomatoIntroTimer = null;
+  const fortuneBox = fortuneModal.querySelector(".fortune-box");
+  fortuneBox.classList.remove("tomato-result", "tomato-intro", "clover-result");
+  fortuneBox.classList.add("tomato-picker");
+  fortuneLabelEl.textContent = "행운의 토마토 뽑기~!~!";
+  fortuneTitleEl.textContent = "토마토 카드 2장 중 1장을 골라요";
+  fortuneTextEl.textContent = `${selectedTomatoCharacter.name}와 방토단이 개큰 운세를 준비했어요.`;
+  fortuneCloseButton.textContent = "닫기";
+  renderFortuneCards(2, "tomato");
+}
+
 function renderFortuneCards(count, mode) {
   fortuneCardsEl.style.setProperty("--card-count", String(count));
   fortuneCardsEl.innerHTML = "";
   for (let i = 0; i < count; i += 1) {
+    const tomatoCharacter = TOMATO_CHARACTERS[(TOMATO_CHARACTERS.indexOf(selectedTomatoCharacter) + i + TOMATO_CHARACTERS.length) % TOMATO_CHARACTERS.length];
     const button = document.createElement("button");
     button.type = "button";
     button.dataset.card = String(i);
     button.className = mode === "clover" ? "clover-card" : "tomato-card";
     button.innerHTML = mode === "clover"
       ? `<span class="card-face clover-face">🍀</span><span class="card-sound">먕먕~!!</span>`
-      : `<img class="card-face" src="${selectedTomatoCharacter.src}" alt="${selectedTomatoCharacter.name}"><span class="card-sound">${selectedTomatoCharacter.name}</span>`;
+      : `<span class="tomato-card-glow"></span><img class="card-face" src="${tomatoCharacter.src}" alt="${tomatoCharacter.name}"><span class="card-sound">${tomatoCharacter.name}</span><span class="tomato-card-caption">상큼뽀짝 운세</span>`;
     button.addEventListener("click", () => pickFortune(i));
     fortuneCardsEl.appendChild(button);
   }
@@ -1010,6 +1035,7 @@ function pickFortune(cardIndex) {
     showCloverFortuneResult(cardIndex, fortunes[picked]);
     return;
   }
+  selectedTomatoCharacter = TOMATO_CHARACTERS[(TOMATO_CHARACTERS.indexOf(selectedTomatoCharacter) + cardIndex + TOMATO_CHARACTERS.length) % TOMATO_CHARACTERS.length];
   showTomatoFortuneResult(fortunes[picked]);
 }
 
@@ -1046,8 +1072,27 @@ function renderCloverDanceStage() {
   `;
 }
 
+function renderTomatoPartyStage() {
+  fortuneCardsEl.style.setProperty("--card-count", "1");
+  fortuneCardsEl.innerHTML = `
+    <div class="tomato-party-stage" aria-hidden="true">
+      <div class="tomato-party-rays"></div>
+      <div class="tomato-party-floor"></div>
+      <div class="bangto-friend one"><img src="/assets/tomato-cute/bangto.svg" alt=""></div>
+      <div class="bangto-friend two"><img src="/assets/tomato-cute/toring.svg" alt=""></div>
+      <div class="bangto-friend three"><img src="/assets/tomato-cute/tosoon.svg" alt=""></div>
+      <div class="bangto-friend four"><img src="/assets/tomato-cute/tomato.svg" alt=""></div>
+      <div class="bangto-note a">♪</div>
+      <div class="bangto-note b">♫</div>
+      <div class="bangto-note c">♬</div>
+      <div class="tomato-hype">토마토 파티 ㅇㅋ?</div>
+    </div>
+  `;
+}
+
 function showTomatoFortuneResult(fortune) {
   const fortuneBox = fortuneModal.querySelector(".fortune-box");
+  fortuneBox.classList.remove("tomato-picker", "tomato-intro");
   fortuneBox.classList.add("tomato-result");
   pendingCloverBoost = false;
   fortuneCloseButton.textContent = "닫기";
