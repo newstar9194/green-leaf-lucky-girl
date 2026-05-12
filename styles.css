@@ -168,6 +168,23 @@ button {
   box-shadow: 0 20px 42px rgba(40, 87, 60, 0.25);
 }
 
+.fortune-box.clover-result {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  overflow: hidden;
+  align-content: center;
+  justify-items: center;
+  border: 0;
+  border-radius: 0;
+  background:
+    radial-gradient(circle at 26% 18%, rgba(255, 255, 255, 0.72) 0 68px, transparent 70px),
+    radial-gradient(circle at 78% 22%, rgba(255, 242, 145, 0.5) 0 84px, transparent 86px),
+    linear-gradient(150deg, #e9ffd0 0%, #94efaf 54%, #fff3a6 100%);
+  box-shadow: none;
+}
+
 .fortune-box h2 {
   margin: 4px 0 16px;
   color: #bd3b2f;
@@ -236,6 +253,211 @@ button {
   font-size: 16px;
   font-weight: 800;
   line-height: 1.45;
+}
+
+.clover-result #fortuneText {
+  position: relative;
+  z-index: 2;
+  width: min(86%, 420px);
+  min-height: 0;
+  margin: 26px 0 18px;
+  padding: 18px;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  border-radius: 22px;
+  color: #1d7048;
+  background: rgba(255, 255, 255, 0.78);
+  font-size: 20px;
+  box-shadow: 0 14px 30px rgba(42, 124, 75, 0.2);
+}
+
+.clover-dance-stage {
+  position: relative;
+  display: none;
+  width: min(82vw, 360px);
+  aspect-ratio: 1;
+  place-items: center;
+}
+
+.clover-result .clover-dance-stage {
+  display: grid;
+}
+
+.dancing-clover {
+  position: relative;
+  width: 168px;
+  height: 168px;
+  animation: cloverDance 0.72s ease-in-out infinite;
+}
+
+.dancing-clover::before,
+.dancing-clover::after,
+.dancing-clover span::before,
+.dancing-clover span::after {
+  position: absolute;
+  width: 86px;
+  height: 86px;
+  border: 4px solid #176d3c;
+  border-radius: 58% 58% 52% 52%;
+  background: #2bd466;
+  content: "";
+  box-shadow: inset 8px 10px 0 rgba(255, 255, 255, 0.26);
+}
+
+.dancing-clover::before {
+  left: 18px;
+  top: 20px;
+  transform: rotate(-28deg);
+}
+
+.dancing-clover::after {
+  right: 18px;
+  top: 20px;
+  transform: rotate(28deg);
+}
+
+.dancing-clover span::before {
+  left: 18px;
+  bottom: 18px;
+  transform: rotate(28deg);
+}
+
+.dancing-clover span::after {
+  right: 18px;
+  bottom: 18px;
+  transform: rotate(-28deg);
+}
+
+.clover-face-cute {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 50%;
+  width: 84px;
+  height: 62px;
+  transform: translate(-50%, -50%);
+  color: #11462b;
+  font-size: 34px;
+  font-weight: 900;
+}
+
+.clover-face-cute::before {
+  position: absolute;
+  left: 5px;
+  top: 12px;
+  content: "•";
+}
+
+.clover-face-cute::after {
+  position: absolute;
+  right: 5px;
+  top: 12px;
+  content: "•";
+}
+
+.clover-mouth {
+  position: absolute;
+  left: 50%;
+  top: 38px;
+  transform: translateX(-50%);
+  font-size: 30px;
+}
+
+.clover-leg {
+  position: absolute;
+  z-index: 1;
+  bottom: -20px;
+  width: 46px;
+  height: 38px;
+  border-bottom: 7px solid #176d3c;
+  border-radius: 0 0 40px 40px;
+}
+
+.clover-leg.left {
+  left: 36px;
+  transform: rotate(22deg);
+  animation: cloverLegLeft 0.72s ease-in-out infinite;
+}
+
+.clover-leg.right {
+  right: 36px;
+  transform: rotate(-22deg);
+  animation: cloverLegRight 0.72s ease-in-out infinite;
+}
+
+.clover-sparkles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.clover-sparkles i {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  transform: rotate(45deg);
+  background: #fff17d;
+  animation: cloverSparkle 1.2s ease-in-out infinite;
+}
+
+.clover-sparkles i:nth-child(1) {
+  left: 12%;
+  top: 20%;
+}
+
+.clover-sparkles i:nth-child(2) {
+  right: 10%;
+  top: 28%;
+  animation-delay: 0.24s;
+}
+
+.clover-sparkles i:nth-child(3) {
+  left: 22%;
+  bottom: 18%;
+  animation-delay: 0.48s;
+}
+
+.clover-sparkles i:nth-child(4) {
+  right: 22%;
+  bottom: 16%;
+  animation-delay: 0.72s;
+}
+
+@keyframes cloverDance {
+  0%, 100% {
+    transform: translateY(0) rotate(-5deg) scale(1);
+  }
+  50% {
+    transform: translateY(-26px) rotate(6deg) scale(1.06);
+  }
+}
+
+@keyframes cloverLegLeft {
+  0%, 100% {
+    transform: rotate(22deg) translateY(0);
+  }
+  50% {
+    transform: rotate(-14deg) translateY(-8px);
+  }
+}
+
+@keyframes cloverLegRight {
+  0%, 100% {
+    transform: rotate(-22deg) translateY(0);
+  }
+  50% {
+    transform: rotate(14deg) translateY(-8px);
+  }
+}
+
+@keyframes cloverSparkle {
+  0%, 100% {
+    opacity: 0.4;
+    transform: rotate(45deg) scale(0.65);
+  }
+  50% {
+    opacity: 1;
+    transform: rotate(45deg) scale(1.24);
+  }
 }
 
 .hud > div {

@@ -885,8 +885,9 @@ function openCloverFortuneModal() {
   pauseForModal();
   fortuneMode = "clover";
   fortuneModal.classList.remove("hidden");
+  fortuneModal.querySelector(".fortune-box").classList.remove("clover-result");
   fortuneLabelEl.textContent = "소소한 네잎클로버 운세";
-  fortuneTitleEl.textContent = "먕먕~!! 카드 1장을 골라요";
+  fortuneTitleEl.innerHTML = "찾았다! 네잎클로버🍀<br>오늘의 행운을 골라봐요!";
   fortuneTextEl.textContent = "귀여운 네잎클로버가 오늘의 작은 행운을 봐줄게요.";
   renderFortuneCards(3, "clover");
 }
@@ -899,6 +900,7 @@ function openTomatoFortuneModal() {
   pauseForModal();
   fortuneMode = "tomato";
   fortuneModal.classList.remove("hidden");
+  fortuneModal.querySelector(".fortune-box").classList.remove("clover-result");
   fortuneLabelEl.textContent = "행운의 토마토 뽑기~!~!";
   fortuneTitleEl.textContent = "토마토 카드 1장을 골라요";
   fortuneTextEl.textContent = "첨부해준 멋쟁이 토마토 친구들이 자세한 운세를 준비했어요.";
@@ -907,6 +909,7 @@ function openTomatoFortuneModal() {
 
 function closeFortuneModal() {
   fortuneModal.classList.add("hidden");
+  fortuneModal.querySelector(".fortune-box").classList.remove("clover-result");
   if (modalResumeOnClose) running = true;
   modalResumeOnClose = false;
 }
@@ -931,6 +934,10 @@ function pickFortune(cardIndex) {
   const fortunes = fortuneMode === "clover" ? BASIC_FORTUNES : TOMATO_FORTUNES;
   const salt = fortuneMode === "clover" ? 17 : 41;
   const picked = (greenLeafCount * 3 + score + cardIndex * salt + new Date().getDate()) % fortunes.length;
+  if (fortuneMode === "clover") {
+    showCloverFortuneResult(cardIndex, fortunes[picked]);
+    return;
+  }
   fortuneTitleEl.textContent = fortuneMode === "clover"
     ? `네잎클로버 ${cardIndex + 1}번 먕먕~!!`
     : `행운의 토마토 ${cardIndex + 1}번~!~!`;
@@ -939,6 +946,26 @@ function pickFortune(cardIndex) {
     button.disabled = true;
     button.classList.toggle("picked", index === cardIndex);
   });
+}
+
+function showCloverFortuneResult(cardIndex, fortune) {
+  const fortuneBox = fortuneModal.querySelector(".fortune-box");
+  fortuneBox.classList.add("clover-result");
+  fortuneLabelEl.textContent = "네잎클로버가 춤추는 중";
+  fortuneTitleEl.textContent = `행운 ${cardIndex + 1}번을 골랐어요!`;
+  fortuneCardsEl.style.setProperty("--card-count", "1");
+  fortuneCardsEl.innerHTML = `
+    <div class="clover-dance-stage" aria-hidden="true">
+      <div class="clover-sparkles"><i></i><i></i><i></i><i></i></div>
+      <div class="dancing-clover">
+        <span></span>
+        <div class="clover-face-cute"><b class="clover-mouth">ᴗ</b></div>
+        <div class="clover-leg left"></div>
+        <div class="clover-leg right"></div>
+      </div>
+    </div>
+  `;
+  fortuneTextEl.textContent = fortune;
 }
 
 function drawBasket(x, y, now = performance.now()) {
