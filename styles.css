@@ -89,7 +89,7 @@ button {
   left: 14px;
   right: 14px;
   display: grid;
-  grid-template-columns: repeat(2, minmax(72px, 1fr)) auto;
+  grid-template-columns: repeat(2, minmax(72px, 1fr)) 180px;
   gap: 8px;
   align-items: center;
   pointer-events: none;
@@ -1015,20 +1015,26 @@ button {
 }
 
 .status-pill {
-  display: grid;
-  min-width: 124px;
-  place-items: center;
+  display: flex;
+  width: 180px;
+  height: 54px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 6px 8px;
   color: #2f5a43;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 900;
+  line-height: 1.18;
   text-align: center;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .status-pill.lucky {
-  min-width: 220px;
   color: #8c5a00;
   font-size: 11px;
-  line-height: 1.15;
+  line-height: 1.18;
   background: rgba(255, 237, 139, 0.82);
 }
 
@@ -1178,7 +1184,10 @@ button {
 
   .status-pill {
     grid-column: 1 / -1;
-    min-height: 36px;
+    width: 100%;
+    height: 42px;
+    padding: 5px 12px;
+    font-size: 12px;
   }
 
   .action-panel {
