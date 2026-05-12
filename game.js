@@ -176,6 +176,8 @@ const TOMATO_FORTUNES = [
 
 let dpr = 1;
 let scale = 1;
+let lockedAppHeight = 0;
+let lockedAppWidth = 0;
 let lastTime = 0;
 let running = false;
 let score = 0;
@@ -201,9 +203,7 @@ let adLoading = false;
 let confetti = [];
 let leaves = [];
 let keyState = new Set();
-let pointerTarget = null;
-let pointerStart = null;
-let pointerMoved = false;
+let activePointers = new Map();
 let lastTouchEndAt = 0;
 let fortuneMode = "tomato";
 let modalResumeOnClose = false;
@@ -236,12 +236,45 @@ function resize() {
   scale = Math.min(canvas.width / WORLD_WIDTH, canvas.height / WORLD_HEIGHT);
 }
 
-function worldFromEvent(event) {
+function setAppHeight(force = false) {
+  const width = Math.round(window.visualViewport?.width || window.innerWidth);
+  const height = window.visualViewport?.height || window.innerHeight;
+  if (!force && lockedAppHeight && Math.abs(width - lockedAppWidth) < 40) {
+    resize();
+    return;
+  }
+  lockedAppWidth = width;
+  lockedAppHeight = Math.round(height);
+  document.documentElement.style.setProperty("--app-height", `${lockedAppHeight}px`);
+  resize();
+}
+
+function getPointerZone(event) {
   const rect = canvas.getBoundingClientRect();
-  return {
-    x: ((event.clientX - rect.left) * dpr - (canvas.width - WORLD_WIDTH * scale) / 2) / scale,
-    y: ((event.clientY - rect.top) * dpr - (canvas.height - WORLD_HEIGHT * scale) / 2) / scale,
-  };
+  const x = event.clientX - rect.left;
+  if (x < rect.width * 0.44) return -1;
+  if (x > rect.width * 0.56) return 1;
+  return 0;
+}
+
+function getPointerDirection() {
+  let direction = 0;
+  activePointers.forEach((pointer) => {
+    direction += pointer.zone;
+  });
+  return clamp(direction, -1, 1);
+}
+
+function trackPointer(event) {
+  const existing = activePointers.get(event.pointerId);
+  const startX = existing?.startX ?? event.clientX;
+  const startY = existing?.startY ?? event.clientY;
+  activePointers.set(event.pointerId, {
+    startX,
+    startY,
+    zone: getPointerZone(event),
+    moved: existing?.moved || Math.hypot(event.clientX - startX, event.clientY - startY) > 16,
+  });
 }
 
 function resetGame() {
@@ -264,6 +297,7 @@ function resetGame() {
   cloverFortuneSeen = false;
   pendingCloverBoost = false;
   selectedTomatoCharacter = TOMATO_CHARACTERS[0];
+  activePointers.clear();
   confetti = [];
   leaves = [];
   player.x = WORLD_WIDTH / 2;
@@ -439,19 +473,7 @@ function update(dt, now) {
   if (keyState.has("ArrowUp") || keyState.has("KeyW") || keyState.has("up")) input.y -= 1;
   if (keyState.has("ArrowDown") || keyState.has("KeyS") || keyState.has("down")) input.y += 1;
 
-  if (pointerTarget) {
-    const dx = pointerTarget.x - player.x;
-    const dy = pointerTarget.y - player.y;
-    if (canFly()) {
-      const dist = Math.hypot(dx, dy);
-      if (dist > 12) {
-        input.x += dx / dist;
-        input.y += dy / dist;
-      }
-    } else if (Math.abs(dx) > 10) {
-      input.x += Math.sign(dx);
-    }
-  }
+  input.x += getPointerDirection();
 
   if (now >= nextWindAt) startWind(now);
 
@@ -1497,7 +1519,9 @@ magnetButton.addEventListener("click", useMagnet);
 fortuneButton.addEventListener("click", openTomatoFortuneModal);
 fortuneCloseButton.addEventListener("click", closeFortuneModal);
 
-window.addEventListener("resize", resize);
+window.addEventListener("resize", () => setAppHeight());
+window.addEventListener("orientationchange", () => window.setTimeout(() => setAppHeight(true), 180));
+window.visualViewport?.addEventListener("resize", () => setAppHeight());
 window.addEventListener(
   "dblclick",
   (event) => {
@@ -1541,37 +1565,29 @@ window.addEventListener("keyup", (event) => keyState.delete(event.code));
 
 canvas.addEventListener("pointerdown", (event) => {
   event.preventDefault();
-  const point = worldFromEvent(event);
-  pointerTarget = point;
-  pointerStart = point;
-  pointerMoved = false;
+  trackPointer(event);
   canvas.setPointerCapture(event.pointerId);
 });
 canvas.addEventListener("pointermove", (event) => {
   event.preventDefault();
   if (!event.buttons) return;
-  const point = worldFromEvent(event);
-  if (pointerStart && Math.hypot(point.x - pointerStart.x, point.y - pointerStart.y) > 18) {
-    pointerMoved = true;
-  }
-  pointerTarget = point;
+  trackPointer(event);
 });
 canvas.addEventListener("pointerup", (event) => {
   event.preventDefault();
-  if (!pointerMoved) jump();
-  pointerTarget = null;
-  pointerStart = null;
+  const pointer = activePointers.get(event.pointerId);
+  if (pointer && !pointer.moved && pointer.zone === 0) jump();
+  activePointers.delete(event.pointerId);
 });
 canvas.addEventListener("pointercancel", (event) => {
   event.preventDefault();
-  pointerTarget = null;
-  pointerStart = null;
+  activePointers.delete(event.pointerId);
 });
 canvas.addEventListener("contextmenu", (event) => {
   event.preventDefault();
 });
 
-resize();
+setAppHeight(true);
 for (let i = 0; i < 9; i += 1) spawnLeaf();
 requestAnimationFrame((now) => {
   lastTime = now;
