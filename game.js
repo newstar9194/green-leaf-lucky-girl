@@ -31,15 +31,23 @@ const MAX_JUMPS = 2;
 const TRIPLE_JUMP_SCORE = 33;
 const FLY_SCORE = 333;
 const FORTUNE_SCORE = 777;
-const LUCKY_TOMATO_MIN_LEAVES = 24;
-const LUCKY_TOMATO_FORCE_LEAVES = 92;
+const CLOVER_FORCE_LEAVES = 18;
+const LUCKY_TOMATO_MIN_LEAVES = 100;
+const LUCKY_TOMATO_FORCE_LEAVES = 118;
 const GREEN_DANCE_DURATION = 5200;
 const FORTUNE_RAIN_DURATION = 7200;
 const MAGNET_DURATION = 12000;
 const MAGNET_STRENGTH = 860;
 const REWARDED_AD_UNIT_PATH = "";
 const ADSENSE_PUBLISHER_ID = "ca-pub-5786432422734713";
-const TOMATO_REFERENCE_IMAGE = "/assets/tomato-character-reference.jpeg";
+const TOMATO_CHARACTERS = [
+  { name: "토마토", src: "/assets/tomato-characters/tomato.jpeg" },
+  { name: "토링이", src: "/assets/tomato-characters/toring.jpeg" },
+  { name: "토순이", src: "/assets/tomato-characters/tosoon.jpeg" },
+  { name: "토도리", src: "/assets/tomato-characters/todori.jpeg" },
+  { name: "토몽", src: "/assets/tomato-characters/tomong.jpeg" },
+  { name: "방토단", src: "/assets/tomato-characters/bangto.jpeg" },
+];
 
 const BASIC_FORTUNES = [
   "오늘은 작은 웃음 하나가 큰 행운으로 번져요. 먼저 인사하면 마음이 포근해질 거예요.",
@@ -190,6 +198,7 @@ let fortuneAnnounced = false;
 let fortuneUnlocked = false;
 let luckyTomatoSpawned = false;
 let luckyTomatoMet = false;
+let cloverFortuneSeen = false;
 let adLoading = false;
 let confetti = [];
 let leaves = [];
@@ -200,6 +209,7 @@ let pointerMoved = false;
 let lastTouchEndAt = 0;
 let fortuneMode = "tomato";
 let modalResumeOnClose = false;
+let selectedTomatoCharacter = TOMATO_CHARACTERS[0];
 let bgmContext = null;
 let bgmTimer = null;
 let bgmStep = 0;
@@ -251,6 +261,8 @@ function resetGame() {
   fortuneUnlocked = false;
   luckyTomatoSpawned = false;
   luckyTomatoMet = false;
+  cloverFortuneSeen = false;
+  selectedTomatoCharacter = TOMATO_CHARACTERS[0];
   confetti = [];
   leaves = [];
   player.x = WORLD_WIDTH / 2;
@@ -265,10 +277,14 @@ function resetGame() {
 
 function spawnLeaf(y = -60) {
   const roll = Math.random();
+  const shouldForceFirstClover = !cloverFortuneSeen
+    && greenLeafCount >= CLOVER_FORCE_LEAVES
+    && !leaves.some((leaf) => leaf.type === "clover");
   const shouldSpawnLuckyTomato = !luckyTomatoSpawned
+    && cloverFortuneSeen
     && greenLeafCount >= LUCKY_TOMATO_MIN_LEAVES
     && (greenLeafCount >= LUCKY_TOMATO_FORCE_LEAVES || Math.random() < 0.09);
-  const type = shouldSpawnLuckyTomato ? "tomato" : roll < CLOVER_CHANCE ? "clover" : "leaf";
+  const type = shouldSpawnLuckyTomato ? "tomato" : shouldForceFirstClover || roll < CLOVER_CHANCE ? "clover" : "leaf";
   if (type === "tomato") luckyTomatoSpawned = true;
   const fallSpeed = (175 + Math.random() * 95 + Math.min(110, score * 1.4)) * SPEED_MULTIPLIER;
   leaves.push({
@@ -380,11 +396,7 @@ function updateActionPanel(now) {
     : `자석 ${coins}`;
   magnetButton.disabled = coins <= 0 && !isMagnetActive(now);
   fortuneButton.disabled = !canDrawFortune();
-  fortuneButton.textContent = canDrawFortune()
-    ? "토마토 운세"
-    : greenLeafCount < LUCKY_TOMATO_MIN_LEAVES
-      ? `${greenLeafCount}/${LUCKY_TOMATO_MIN_LEAVES} 토마토`
-      : "토마토 찾는 중";
+  fortuneButton.textContent = canDrawFortune() ? "토마토 운세" : `${greenLeafCount}/777 운세`;
   adButton.textContent = adLoading ? "광고 준비중" : `광고보기 · 코인 ${coins}`;
 }
 
@@ -510,6 +522,7 @@ function update(dt, now) {
       if (leaf.type === "tomato") {
         luckyTomatoMet = true;
         fortuneUnlocked = true;
+        selectedTomatoCharacter = pickTomatoCharacter();
         fortuneRainUntil = now + FORTUNE_RAIN_DURATION;
         burst(leaf.x, leaf.y, "#ff7662");
         openTomatoFortuneModal(true);
@@ -929,11 +942,11 @@ function openTomatoFortuneModal(fromLuckyTomato = false) {
   fortuneModal.querySelector(".fortune-box").classList.remove("clover-result", "tomato-result");
   fortuneLabelEl.textContent = fromLuckyTomato ? "대박 사건 발생" : "행운의 토마토 뽑기~!~!";
   fortuneTitleEl.textContent = fromLuckyTomato
-    ? "헉! 개큰 행운 토마토를 만났어요!"
+    ? `헉! ${selectedTomatoCharacter.name}가 튀어나왔어요!`
     : "토마토 카드 1장을 골라요";
   fortuneTextEl.textContent = fromLuckyTomato
-    ? "이건 개큰 행운이에요~!~! 토마토 카드 1장을 골라서 오늘의 운세를 바로 봐요!"
-    : "멋쟁이 토마토 친구들이 자세한 운세를 준비했어요.";
+    ? "777개 전에 만난 개큰 행운이에요~!~! 카드 1장을 골라서 오늘의 운세를 바로 봐요!"
+    : `${selectedTomatoCharacter.name}가 자세한 운세를 준비했어요.`;
   renderFortuneCards(1, "tomato");
 }
 
@@ -954,7 +967,7 @@ function renderFortuneCards(count, mode) {
     button.className = mode === "clover" ? "clover-card" : "tomato-card";
     button.innerHTML = mode === "clover"
       ? `<span class="card-face clover-face">🍀</span><span class="card-sound">먕먕~!!</span>`
-      : `<img class="card-face" src="${TOMATO_REFERENCE_IMAGE}" alt="토마토 캐릭터"><span class="card-sound">토마토 ${i + 1}</span>`;
+      : `<img class="card-face" src="${selectedTomatoCharacter.src}" alt="${selectedTomatoCharacter.name}"><span class="card-sound">${selectedTomatoCharacter.name}</span>`;
     button.addEventListener("click", () => pickFortune(i));
     fortuneCardsEl.appendChild(button);
   }
@@ -971,9 +984,15 @@ function pickFortune(cardIndex) {
   showTomatoFortuneResult(fortunes[picked]);
 }
 
+function pickTomatoCharacter() {
+  const index = (greenLeafCount + score + new Date().getDate() + Math.floor(Math.random() * TOMATO_CHARACTERS.length)) % TOMATO_CHARACTERS.length;
+  return TOMATO_CHARACTERS[index];
+}
+
 function showCloverFortuneResult(cardIndex, fortune) {
   const fortuneBox = fortuneModal.querySelector(".fortune-box");
   fortuneBox.classList.add("clover-result");
+  cloverFortuneSeen = true;
   fortuneLabelEl.textContent = "네잎클로버가 춤추는 중";
   fortuneTitleEl.textContent = `행운 ${cardIndex + 1}번을 골랐어요!`;
   fortuneCardsEl.style.setProperty("--card-count", "1");
@@ -1000,8 +1019,8 @@ function showTomatoFortuneResult(fortune) {
   fortuneCardsEl.innerHTML = `
     <div class="tomato-dance-stage" aria-hidden="true">
       <div class="tomato-burst"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-      <img class="dancing-tomato-photo" src="${TOMATO_REFERENCE_IMAGE}" alt="">
-      <div class="tomato-hype">개큰 행운이다~!~!</div>
+      <img class="dancing-tomato-photo" src="${selectedTomatoCharacter.src}" alt="">
+      <div class="tomato-hype">${selectedTomatoCharacter.name}의 개큰 행운~!~!</div>
     </div>
   `;
   fortuneTextEl.textContent = fortune;
