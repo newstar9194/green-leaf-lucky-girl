@@ -1516,6 +1516,20 @@ window.addEventListener(
   },
   { passive: false }
 );
+window.addEventListener(
+  "touchmove",
+  (event) => {
+    if (!event.target.closest(".fortune-box")) event.preventDefault();
+  },
+  { passive: false }
+);
+window.addEventListener(
+  "wheel",
+  (event) => {
+    if (!event.target.closest(".fortune-box")) event.preventDefault();
+  },
+  { passive: false }
+);
 window.addEventListener("keydown", (event) => {
   keyState.add(event.code);
   if ((event.code === "Space" || event.code === "ArrowUp" || event.code === "KeyW") && !event.repeat) {
