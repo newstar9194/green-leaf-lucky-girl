@@ -14,6 +14,7 @@ const fortuneTitleEl = document.querySelector("#fortuneTitle");
 const fortuneTextEl = document.querySelector("#fortuneText");
 const fortuneCardsEl = document.querySelector("#fortuneCards");
 const fortuneCloseButton = document.querySelector("#fortuneCloseButton");
+const boostCaptionEl = document.querySelector("#boostCaption");
 
 const WORLD_WIDTH = 900;
 const WORLD_HEIGHT = 1400;
@@ -40,7 +41,7 @@ const MAGNET_STRENGTH = 860;
 const REWARDED_AD_UNIT_PATH = "";
 const ADSENSE_PUBLISHER_ID = "ca-pub-5786432422734713";
 const TOMATO_CHARACTERS = [
-  { name: "토마토", src: "/assets/tomato-cute/tomato.svg" },
+  { name: "토마토마", src: "/assets/tomato-cute/tomato.svg" },
   { name: "토링이", src: "/assets/tomato-cute/toring.svg" },
   { name: "토순이", src: "/assets/tomato-cute/tosoon.svg" },
   { name: "토도리", src: "/assets/tomato-cute/todori.svg" },
@@ -209,8 +210,10 @@ let fortuneMode = "tomato";
 let modalResumeOnClose = false;
 let pendingCloverBoost = false;
 let selectedTomatoCharacter = TOMATO_CHARACTERS[0];
+let selectedTomatoCards = TOMATO_CHARACTERS.slice(0, 2);
 let cloverIntroTimer = null;
 let tomatoIntroTimer = null;
+let boostCaptionTimer = null;
 let bgmContext = null;
 let bgmTimer = null;
 let bgmStep = 0;
@@ -297,6 +300,8 @@ function resetGame() {
   cloverFortuneSeen = false;
   pendingCloverBoost = false;
   selectedTomatoCharacter = TOMATO_CHARACTERS[0];
+  selectedTomatoCards = TOMATO_CHARACTERS.slice(0, 2);
+  hideBoostCaption();
   activePointers.clear();
   confetti = [];
   leaves = [];
@@ -359,6 +364,11 @@ function updateHud(now) {
   const cloverBoosted = isCloverBoosted(now);
   luckyStatusEl.classList.toggle("lucky", cloverBoosted);
   luckyStatusEl.classList.toggle("windy", isWindy(now));
+  const guideMessages = [
+    "행운의 초록잎을 모아봐요",
+    "네잎클로버를 받으면 행운 운세를 볼 수 있어요",
+    "럭키토마토를 받으면 토마토 운세를 볼 수 있어요",
+  ];
   if (isFortuneRaining(now)) {
     luckyStatusEl.textContent = "행운 뿌리기";
   } else if (cloverBoosted) {
@@ -367,14 +377,14 @@ function updateHud(now) {
     luckyStatusEl.textContent = "초록짱짱 댄스";
   } else if (isMagnetActive(now)) {
     luckyStatusEl.textContent = `자석 ${Math.ceil((magnetUntil - now) / 1000)}초`;
-  } else if (canFly()) {
-    luckyStatusEl.textContent = "자유 비행";
-  } else if (canTripleJump()) {
-    luckyStatusEl.textContent = "3단 점프";
   } else if (isWindy(now)) {
     luckyStatusEl.textContent = "강풍 조심";
   } else {
-    luckyStatusEl.textContent = "받을 준비";
+    const abilityMessages = [];
+    if (canTripleJump()) abilityMessages.push("3단 점프");
+    if (canFly()) abilityMessages.push("자유 비행");
+    const messages = abilityMessages.concat(guideMessages);
+    luckyStatusEl.textContent = messages[Math.floor(now / 2600) % messages.length];
   }
   updateActionPanel(now);
 }
@@ -390,9 +400,24 @@ function isCloverBoosted(now) {
 function startCloverBoost(now = performance.now()) {
   cloverBoostUntil = now + CLOVER_BOOST_DURATION;
   luckyStatusEl.textContent = "네잎 클로버의 행운을 받아서 짱짱 커졌어요!";
+  showBoostCaption("네잎 클로버의 행운을 받아서 짱짱 커졌어요!");
   burst(player.x, Math.max(150, player.y - 150), "#f7d75b");
   burst(player.x, Math.max(190, player.y - 80), "#5ee088");
   updateHud(now);
+}
+
+function showBoostCaption(message) {
+  boostCaptionEl.innerHTML = `<strong>${message}</strong>`;
+  boostCaptionEl.classList.remove("hidden");
+  if (boostCaptionTimer) window.clearTimeout(boostCaptionTimer);
+  boostCaptionTimer = window.setTimeout(hideBoostCaption, CLOVER_BOOST_DURATION);
+}
+
+function hideBoostCaption() {
+  if (boostCaptionTimer) window.clearTimeout(boostCaptionTimer);
+  boostCaptionTimer = null;
+  boostCaptionEl.classList.add("hidden");
+  boostCaptionEl.innerHTML = "";
 }
 
 function startWind(now) {
@@ -1015,7 +1040,7 @@ function openCloverFortuneModal() {
   fortuneBox.classList.add("clover-result", "clover-intro");
   fortuneLabelEl.textContent = "네잎클로버 받았다!";
   fortuneTitleEl.textContent = "먕먕~!! 네잎클로버 댄스 타임!";
-  fortuneTextEl.textContent = "지금 춤추는 중이에요. 춤이 끝나면 바로 행운 카드가 나와요.";
+  fortuneTextEl.textContent = "";
   renderCloverDanceStage();
   cloverIntroTimer = window.setTimeout(showCloverCardPicker, 2400);
 }
@@ -1070,12 +1095,13 @@ function showCloverCardPicker() {
 
 function showTomatoCardPicker() {
   tomatoIntroTimer = null;
+  selectedTomatoCards = pickRandomTomatoCards();
   const fortuneBox = fortuneModal.querySelector(".fortune-box");
   fortuneBox.classList.remove("tomato-result", "tomato-intro", "clover-result");
   fortuneBox.classList.add("tomato-picker");
   fortuneLabelEl.textContent = "행운의 토마토 뽑기~!~!";
   fortuneTitleEl.textContent = "토마토 카드 2장 중 1장을 골라요";
-  fortuneTextEl.textContent = `${selectedTomatoCharacter.name}와 방토단이 개큰 운세를 준비했어요.`;
+  fortuneTextEl.textContent = "멋쟁이 토마토가 멋진 운세를 알려줄게요.";
   fortuneCloseButton.textContent = "닫기";
   renderFortuneCards(2, "tomato");
 }
@@ -1084,7 +1110,7 @@ function renderFortuneCards(count, mode) {
   fortuneCardsEl.style.setProperty("--card-count", String(count));
   fortuneCardsEl.innerHTML = "";
   for (let i = 0; i < count; i += 1) {
-    const tomatoCharacter = TOMATO_CHARACTERS[(TOMATO_CHARACTERS.indexOf(selectedTomatoCharacter) + i + TOMATO_CHARACTERS.length) % TOMATO_CHARACTERS.length];
+    const tomatoCharacter = selectedTomatoCards[i] || TOMATO_CHARACTERS[(TOMATO_CHARACTERS.indexOf(selectedTomatoCharacter) + i + TOMATO_CHARACTERS.length) % TOMATO_CHARACTERS.length];
     const button = document.createElement("button");
     button.type = "button";
     button.dataset.card = String(i);
@@ -1105,7 +1131,7 @@ function pickFortune(cardIndex) {
     showCloverFortuneResult(cardIndex, fortunes[picked]);
     return;
   }
-  selectedTomatoCharacter = TOMATO_CHARACTERS[(TOMATO_CHARACTERS.indexOf(selectedTomatoCharacter) + cardIndex + TOMATO_CHARACTERS.length) % TOMATO_CHARACTERS.length];
+  selectedTomatoCharacter = selectedTomatoCards[cardIndex] || TOMATO_CHARACTERS[(TOMATO_CHARACTERS.indexOf(selectedTomatoCharacter) + cardIndex + TOMATO_CHARACTERS.length) % TOMATO_CHARACTERS.length];
   showTomatoFortuneResult(fortunes[picked]);
 }
 
@@ -1114,17 +1140,20 @@ function pickTomatoCharacter() {
   return TOMATO_CHARACTERS[index];
 }
 
+function pickRandomTomatoCards() {
+  const shuffled = [...TOMATO_CHARACTERS];
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled.slice(0, 2);
+}
+
 function showCloverFortuneResult(cardIndex, fortune) {
-  const fortuneBox = fortuneModal.querySelector(".fortune-box");
-  fortuneBox.classList.remove("clover-picker", "clover-intro");
-  fortuneBox.classList.add("clover-result");
   cloverFortuneSeen = true;
-  pendingCloverBoost = true;
-  fortuneLabelEl.textContent = "네잎클로버가 춤추는 중";
-  fortuneTitleEl.textContent = `행운 ${cardIndex + 1}번을 골랐어요!`;
-  renderCloverDanceStage();
-  fortuneTextEl.textContent = fortune;
-  fortuneCloseButton.textContent = "행운 받고 짱커지기";
+  pendingCloverBoost = false;
+  closeFortuneModal();
+  startCloverBoost();
 }
 
 function renderCloverDanceStage() {
@@ -1155,7 +1184,7 @@ function renderTomatoPartyStage() {
       <div class="bangto-note a">♪</div>
       <div class="bangto-note b">♫</div>
       <div class="bangto-note c">♬</div>
-      <div class="tomato-hype">토마토 파티 ㅇㅋ?</div>
+      <div class="tomato-hype">토마토 파티 룰루</div>
     </div>
   `;
 }
@@ -1176,7 +1205,15 @@ function showTomatoFortuneResult(fortune) {
       <div class="tomato-hype">${selectedTomatoCharacter.name}의 개큰 행운~!~!</div>
     </div>
   `;
-  fortuneTextEl.textContent = fortune;
+  fortuneTextEl.textContent = buildDetailedTomatoFortune(fortune);
+}
+
+function buildDetailedTomatoFortune(fortune) {
+  return `${selectedTomatoCharacter.name}가 오늘의 기운을 톡톡 살펴봤어요.
+${fortune}
+오늘은 너무 크게 욕심내기보다, 기분 좋아지는 선택을 하나만 해보면 좋아요.
+맛있는 것, 귀여운 것, 잠깐의 산책처럼 작은 즐거움이 운을 부풀려줄 거예요.
+그리고 누군가에게 다정하게 말하면 그 행운이 다시 두목님 쪽으로 돌아올 거예요~!`;
 }
 
 function drawBasket(x, y, now = performance.now()) {
