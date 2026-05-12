@@ -702,6 +702,14 @@ button {
   text-align: center;
 }
 
+.status-pill.lucky {
+  min-width: 220px;
+  color: #8c5a00;
+  font-size: 11px;
+  line-height: 1.15;
+  background: rgba(255, 237, 139, 0.82);
+}
+
 .status-pill.windy {
   color: #146075;
   background: rgba(213, 250, 255, 0.86);
