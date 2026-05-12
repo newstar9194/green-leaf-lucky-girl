@@ -787,25 +787,73 @@ function startBossaNova() {
 function scheduleBossaNova() {
   if (!bgmContext) return;
   const now = bgmContext.currentTime;
-  while (bgmStep * 0.18 < now + 1.2) {
-    const t = bgmStep * 0.18;
+  const stepDuration = 0.16;
+  while (bgmStep * stepDuration < now + 1.4) {
+    const t = bgmStep * stepDuration;
     const beat = bgmStep % 16;
     const bar = Math.floor(bgmStep / 16) % 4;
     const chords = [
-      [261.63, 329.63, 392.0, 493.88],
-      [293.66, 349.23, 440.0, 523.25],
-      [246.94, 311.13, 392.0, 466.16],
-      [220.0, 277.18, 349.23, 440.0],
+      [261.63, 329.63, 392.0, 493.88, 659.25],
+      [293.66, 349.23, 440.0, 523.25, 698.46],
+      [246.94, 311.13, 392.0, 466.16, 622.25],
+      [220.0, 277.18, 349.23, 440.0, 554.37],
+    ];
+    const melody = [
+      659.25, 783.99, 739.99, 659.25,
+      587.33, 659.25, 523.25, 493.88,
+      622.25, 739.99, 698.46, 622.25,
+      554.37, 659.25, 587.33, 523.25,
     ];
     const chord = chords[bar];
     if ([0, 3, 6, 10, 13].includes(beat)) {
-      playTone(chord[beat % chord.length], t, 0.09, 0.045, "triangle");
-      playTone(chord[(beat + 1) % chord.length] * 2, t + 0.012, 0.07, 0.025, "sine");
+      playPianoChord(chord, t, beat === 0 ? 0.19 : 0.13);
     }
-    if ([0, 4, 8, 12].includes(beat)) playTone(chord[0] / 2, t, 0.12, 0.055, "sine");
-    if ([2, 7, 11, 15].includes(beat)) playNoise(t, 0.045, 0.035);
+    if ([0, 4, 7, 11].includes(beat)) {
+      playTone(chord[0] / 2, t, 0.22, 0.055, "sine");
+      playTone(chord[0], t + 0.018, 0.12, 0.022, "triangle");
+    }
+    if ([2, 5, 8, 12, 15].includes(beat)) {
+      playPianoNote(melody[(bar * 4 + beat) % melody.length], t + 0.012, 0.16, 0.04);
+    }
+    if ([9, 14].includes(beat)) {
+      playPianoNote(melody[(bar * 4 + beat + 3) % melody.length] * 1.25, t + 0.02, 0.1, 0.025);
+    }
+    if ([1, 3, 5, 7, 9, 11, 13, 15].includes(beat)) playNoise(t, 0.035, 0.018);
+    if ([4, 12].includes(beat)) playNoise(t, 0.055, 0.026);
     bgmStep += 1;
   }
+}
+
+function playPianoChord(chord, startAt, gainValue) {
+  const voicing = [0, 1, 2, 3, 4].map((index) => chord[index] * (index > 2 ? 1 : 2));
+  voicing.forEach((frequency, index) => {
+    playPianoNote(frequency, startAt + index * 0.008, 0.34 - index * 0.025, gainValue * (index < 3 ? 0.34 : 0.24));
+  });
+  playPianoNote(chord[0], startAt + 0.016, 0.28, gainValue * 0.22);
+}
+
+function playPianoNote(frequency, startAt, duration, gainValue) {
+  const output = bgmContext.createGain();
+  output.gain.setValueAtTime(0, startAt);
+  output.gain.linearRampToValueAtTime(gainValue, startAt + 0.008);
+  output.gain.exponentialRampToValueAtTime(0.001, startAt + duration);
+  output.connect(bgmContext.destination);
+
+  [
+    { ratio: 1, gain: 1, type: "triangle" },
+    { ratio: 2.01, gain: 0.32, type: "sine" },
+    { ratio: 3.01, gain: 0.12, type: "sine" },
+  ].forEach((partial) => {
+    const oscillator = bgmContext.createOscillator();
+    const partialGain = bgmContext.createGain();
+    oscillator.type = partial.type;
+    oscillator.frequency.setValueAtTime(frequency * partial.ratio, startAt);
+    oscillator.frequency.exponentialRampToValueAtTime(frequency * partial.ratio * 0.998, startAt + duration);
+    partialGain.gain.value = partial.gain;
+    oscillator.connect(partialGain).connect(output);
+    oscillator.start(startAt);
+    oscillator.stop(startAt + duration + 0.04);
+  });
 }
 
 function playTone(frequency, startAt, duration, gainValue, type = "sine") {
