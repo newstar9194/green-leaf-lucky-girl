@@ -31,6 +31,8 @@ const MAX_JUMPS = 2;
 const TRIPLE_JUMP_SCORE = 33;
 const FLY_SCORE = 333;
 const FORTUNE_SCORE = 777;
+const LUCKY_TOMATO_MIN_LEAVES = 24;
+const LUCKY_TOMATO_FORCE_LEAVES = 92;
 const GREEN_DANCE_DURATION = 5200;
 const FORTUNE_RAIN_DURATION = 7200;
 const MAGNET_DURATION = 12000;
@@ -186,6 +188,8 @@ let magnetUntil = 0;
 let flyAnnounced = false;
 let fortuneAnnounced = false;
 let fortuneUnlocked = false;
+let luckyTomatoSpawned = false;
+let luckyTomatoMet = false;
 let adLoading = false;
 let confetti = [];
 let leaves = [];
@@ -245,6 +249,8 @@ function resetGame() {
   flyAnnounced = false;
   fortuneAnnounced = false;
   fortuneUnlocked = false;
+  luckyTomatoSpawned = false;
+  luckyTomatoMet = false;
   confetti = [];
   leaves = [];
   player.x = WORLD_WIDTH / 2;
@@ -259,12 +265,16 @@ function resetGame() {
 
 function spawnLeaf(y = -60) {
   const roll = Math.random();
-  const type = roll < CLOVER_CHANCE ? "clover" : "leaf";
+  const shouldSpawnLuckyTomato = !luckyTomatoSpawned
+    && greenLeafCount >= LUCKY_TOMATO_MIN_LEAVES
+    && (greenLeafCount >= LUCKY_TOMATO_FORCE_LEAVES || Math.random() < 0.09);
+  const type = shouldSpawnLuckyTomato ? "tomato" : roll < CLOVER_CHANCE ? "clover" : "leaf";
+  if (type === "tomato") luckyTomatoSpawned = true;
   const fallSpeed = (175 + Math.random() * 95 + Math.min(110, score * 1.4)) * SPEED_MULTIPLIER;
   leaves.push({
     x: 70 + Math.random() * (WORLD_WIDTH - 140),
     y,
-    r: type === "clover" ? 28 : LEAF_RADIUS,
+    r: type === "tomato" ? 36 : type === "clover" ? 28 : LEAF_RADIUS,
     type,
     clover: type === "clover",
     fallSpeed,
@@ -361,7 +371,7 @@ function isMagnetActive(now) {
 }
 
 function canDrawFortune() {
-  return greenLeafCount >= FORTUNE_SCORE || fortuneUnlocked;
+  return luckyTomatoMet || greenLeafCount >= FORTUNE_SCORE || fortuneUnlocked;
 }
 
 function updateActionPanel(now) {
@@ -370,7 +380,11 @@ function updateActionPanel(now) {
     : `자석 ${coins}`;
   magnetButton.disabled = coins <= 0 && !isMagnetActive(now);
   fortuneButton.disabled = !canDrawFortune();
-  fortuneButton.textContent = canDrawFortune() ? "토마토 운세" : `${greenLeafCount}/777 운세`;
+  fortuneButton.textContent = canDrawFortune()
+    ? "토마토 운세"
+    : greenLeafCount < LUCKY_TOMATO_MIN_LEAVES
+      ? `${greenLeafCount}/${LUCKY_TOMATO_MIN_LEAVES} 토마토`
+      : "토마토 찾는 중";
   adButton.textContent = adLoading ? "광고 준비중" : `광고보기 · 코인 ${coins}`;
 }
 
@@ -467,6 +481,9 @@ function update(dt, now) {
     }
     leaf.x += (leaf.drift + windPush + pullX + Math.sin(floatTime * 3.4 + leaf.bob) * leaf.sway) * dt;
     leaf.y += (leaf.fallSpeed + pullY) * dt;
+    if (leaf.type === "tomato" && leaf.y > WORLD_HEIGHT + 80 && !luckyTomatoMet) {
+      luckyTomatoSpawned = false;
+    }
     if (leaf.x < 38 || leaf.x > WORLD_WIDTH - 38) {
       leaf.x = clamp(leaf.x, 38, WORLD_WIDTH - 38);
       leaf.drift *= -0.78;
@@ -477,8 +494,8 @@ function update(dt, now) {
     const catchHeight = isLucky(now) ? 70 : 42;
     const caught = Math.abs(player.x - leaf.x) < catchWidth && Math.abs(catchY - leaf.y) < catchHeight;
     if (caught) {
-      score += leaf.clover ? 7 : 1;
-      if (!leaf.clover) {
+      score += leaf.type === "tomato" ? 11 : leaf.clover ? 7 : 1;
+      if (leaf.type === "leaf") {
         greenLeafCount += 1;
         if (greenLeafCount >= nextGreenDanceAt) {
           greenDanceUntil = now + GREEN_DANCE_DURATION;
@@ -490,7 +507,14 @@ function update(dt, now) {
         luckyUntil = now + LUCKY_DURATION;
         openCloverFortuneModal();
       }
-      burst(leaf.x, leaf.y, leaf.clover ? "#f6cf4f" : "#49bd72");
+      if (leaf.type === "tomato") {
+        luckyTomatoMet = true;
+        fortuneUnlocked = true;
+        fortuneRainUntil = now + FORTUNE_RAIN_DURATION;
+        burst(leaf.x, leaf.y, "#ff7662");
+        openTomatoFortuneModal(true);
+      }
+      burst(leaf.x, leaf.y, leaf.type === "tomato" ? "#ff7662" : leaf.clover ? "#f6cf4f" : "#49bd72");
       return false;
     }
     return leaf.y < WORLD_HEIGHT + 90;
@@ -501,7 +525,7 @@ function update(dt, now) {
     flyAnnounced = true;
     burst(player.x, player.y - 120, "#bde9ff");
   }
-  if (!fortuneAnnounced && score >= FORTUNE_SCORE) {
+  if (!fortuneAnnounced && (score >= FORTUNE_SCORE || luckyTomatoMet)) {
     fortuneAnnounced = true;
     fortuneRainUntil = now + FORTUNE_RAIN_DURATION;
     burst(player.x, player.y - 160, "#f7d75b");
@@ -591,7 +615,9 @@ function drawCollectible(leaf) {
   ctx.save();
   ctx.translate(leaf.x, leaf.y);
   ctx.rotate(leaf.spin + Math.sin(floatTime * 8 + leaf.bob) * (isWindy(performance.now()) ? 0.45 : 0.16));
-  if (leaf.clover) {
+  if (leaf.type === "tomato") {
+    drawLuckyTomatoItem(0, 0, leaf.r);
+  } else if (leaf.clover) {
     drawClover(0, 0, leaf.r);
   } else {
     drawLeaf(0, 0, leaf.r, "#35ad61", "#247e49");
@@ -892,18 +918,22 @@ function openCloverFortuneModal() {
   renderFortuneCards(3, "clover");
 }
 
-function openTomatoFortuneModal() {
+function openTomatoFortuneModal(fromLuckyTomato = false) {
   if (!canDrawFortune()) {
-    luckyStatusEl.textContent = "777잎 필요";
+    luckyStatusEl.textContent = "토마토를 찾아요";
     return;
   }
   pauseForModal();
   fortuneMode = "tomato";
   fortuneModal.classList.remove("hidden");
   fortuneModal.querySelector(".fortune-box").classList.remove("clover-result");
-  fortuneLabelEl.textContent = "행운의 토마토 뽑기~!~!";
-  fortuneTitleEl.textContent = "토마토 카드 1장을 골라요";
-  fortuneTextEl.textContent = "첨부해준 멋쟁이 토마토 친구들이 자세한 운세를 준비했어요.";
+  fortuneLabelEl.textContent = fromLuckyTomato ? "대박 사건 발생" : "행운의 토마토 뽑기~!~!";
+  fortuneTitleEl.textContent = fromLuckyTomato
+    ? "헉! 777개 전에 행운의 토마토를 만났어요!"
+    : "토마토 카드 1장을 골라요";
+  fortuneTextEl.textContent = fromLuckyTomato
+    ? "이건 개큰 행운이에요~!~! 토마토 카드 1장을 골라서 오늘의 운세를 바로 봐요!"
+    : "멋쟁이 토마토 친구들이 자세한 운세를 준비했어요.";
   renderFortuneCards(2, "tomato");
 }
 
@@ -1246,6 +1276,71 @@ function drawClover(x, y, r) {
   ctx.moveTo(0, r * 0.18);
   ctx.quadraticCurveTo(r * 0.22, r * 0.58, r * 0.05, r * 0.9);
   ctx.stroke();
+  ctx.restore();
+}
+
+function drawLuckyTomatoItem(x, y, r) {
+  ctx.save();
+  ctx.translate(x, y);
+  const pulse = 1 + Math.sin(floatTime * 10) * 0.08;
+  ctx.scale(pulse, pulse);
+
+  ctx.fillStyle = "rgba(255, 230, 95, 0.42)";
+  ctx.beginPath();
+  ctx.arc(0, 0, r * 1.45, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "#f24c3f";
+  ctx.strokeStyle = "#9f2c29";
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.ellipse(0, 8, r * 0.94, r * 0.82, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = "#258849";
+  ctx.strokeStyle = "#176d3c";
+  ctx.lineWidth = 3;
+  for (let i = 0; i < 5; i += 1) {
+    ctx.save();
+    ctx.rotate((i * Math.PI * 2) / 5);
+    ctx.beginPath();
+    ctx.ellipse(0, -r * 0.68, r * 0.18, r * 0.42, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  ctx.strokeStyle = "#251f21";
+  ctx.lineWidth = 4;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(-r * 0.44, 2);
+  ctx.lineTo(-r * 0.16, -r * 0.03);
+  ctx.moveTo(r * 0.16, -r * 0.03);
+  ctx.lineTo(r * 0.44, 2);
+  ctx.stroke();
+
+  ctx.fillStyle = "#fff3a8";
+  ctx.beginPath();
+  ctx.arc(-r * 0.42, r * 0.28, r * 0.12, 0, Math.PI * 2);
+  ctx.arc(r * 0.42, r * 0.28, r * 0.12, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = "#fff17d";
+  ctx.lineWidth = 5;
+  for (let i = 0; i < 4; i += 1) {
+    const angle = floatTime * 3 + i * Math.PI / 2;
+    const sx = Math.cos(angle) * r * 1.45;
+    const sy = Math.sin(angle) * r * 1.45;
+    ctx.beginPath();
+    ctx.moveTo(sx - 6, sy);
+    ctx.lineTo(sx + 6, sy);
+    ctx.moveTo(sx, sy - 6);
+    ctx.lineTo(sx, sy + 6);
+    ctx.stroke();
+  }
+
   ctx.restore();
 }
 
