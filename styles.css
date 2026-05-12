@@ -168,7 +168,8 @@ button {
   box-shadow: 0 20px 42px rgba(40, 87, 60, 0.25);
 }
 
-.fortune-box.clover-result {
+.fortune-box.clover-result,
+.fortune-box.tomato-result {
   display: grid;
   width: 100%;
   height: 100%;
@@ -183,6 +184,14 @@ button {
     radial-gradient(circle at 78% 22%, rgba(255, 242, 145, 0.5) 0 84px, transparent 86px),
     linear-gradient(150deg, #e9ffd0 0%, #94efaf 54%, #fff3a6 100%);
   box-shadow: none;
+}
+
+.fortune-box.tomato-result {
+  background:
+    radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.72) 0 72px, transparent 74px),
+    radial-gradient(circle at 84% 16%, rgba(255, 239, 95, 0.78) 0 96px, transparent 98px),
+    radial-gradient(circle at 48% 86%, rgba(255, 255, 255, 0.42) 0 118px, transparent 120px),
+    linear-gradient(145deg, #ffef74 0%, #ff7a64 46%, #37d477 100%);
 }
 
 .fortune-box h2 {
@@ -255,7 +264,8 @@ button {
   line-height: 1.45;
 }
 
-.clover-result #fortuneText {
+.clover-result #fortuneText,
+.tomato-result #fortuneText {
   position: relative;
   z-index: 2;
   width: min(86%, 420px);
@@ -270,6 +280,12 @@ button {
   box-shadow: 0 14px 30px rgba(42, 124, 75, 0.2);
 }
 
+.tomato-result #fortuneText {
+  color: #8d2d24;
+  background: rgba(255, 250, 221, 0.86);
+  box-shadow: 0 18px 34px rgba(137, 38, 34, 0.22);
+}
+
 .clover-dance-stage {
   position: relative;
   display: none;
@@ -280,6 +296,106 @@ button {
 
 .clover-result .clover-dance-stage {
   display: grid;
+}
+
+.tomato-dance-stage {
+  position: relative;
+  display: none;
+  width: min(88vw, 400px);
+  min-height: 360px;
+  place-items: center;
+}
+
+.tomato-result .tomato-dance-stage {
+  display: grid;
+}
+
+.dancing-tomato-photo {
+  position: relative;
+  z-index: 2;
+  width: min(72vw, 310px);
+  aspect-ratio: 4 / 5;
+  border: 8px solid rgba(255, 255, 255, 0.95);
+  border-radius: 26px;
+  object-fit: cover;
+  box-shadow:
+    0 22px 38px rgba(111, 28, 24, 0.26),
+    0 0 0 10px rgba(255, 238, 100, 0.42);
+  animation: tomatoPhotoDance 0.78s ease-in-out infinite;
+}
+
+.tomato-hype {
+  position: absolute;
+  z-index: 3;
+  bottom: 20px;
+  left: 50%;
+  width: max-content;
+  max-width: 92%;
+  padding: 10px 16px;
+  border: 3px solid #fff;
+  border-radius: 999px;
+  color: #fffdf0;
+  background: #e33c32;
+  font-size: 24px;
+  font-weight: 900;
+  transform: translateX(-50%) rotate(-3deg);
+  box-shadow: 0 10px 0 rgba(117, 29, 25, 0.18);
+  animation: tomatoHypePop 0.9s ease-in-out infinite;
+}
+
+.tomato-burst {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.tomato-burst i {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #fff065;
+  box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.32);
+  animation: tomatoBurst 1.05s ease-in-out infinite;
+}
+
+.tomato-burst i:nth-child(1) {
+  left: 4%;
+  top: 16%;
+}
+
+.tomato-burst i:nth-child(2) {
+  right: 6%;
+  top: 18%;
+  background: #fff;
+  animation-delay: 0.12s;
+}
+
+.tomato-burst i:nth-child(3) {
+  left: 12%;
+  bottom: 24%;
+  background: #55ef8a;
+  animation-delay: 0.24s;
+}
+
+.tomato-burst i:nth-child(4) {
+  right: 13%;
+  bottom: 25%;
+  animation-delay: 0.36s;
+}
+
+.tomato-burst i:nth-child(5) {
+  left: 44%;
+  top: 2%;
+  background: #fff;
+  animation-delay: 0.48s;
+}
+
+.tomato-burst i:nth-child(6) {
+  right: 42%;
+  bottom: 4%;
+  background: #49e174;
+  animation-delay: 0.6s;
 }
 
 .dancing-clover {
@@ -457,6 +573,35 @@ button {
   50% {
     opacity: 1;
     transform: rotate(45deg) scale(1.24);
+  }
+}
+
+@keyframes tomatoPhotoDance {
+  0%, 100% {
+    transform: translateY(0) rotate(-4deg) scale(1);
+  }
+  50% {
+    transform: translateY(-24px) rotate(5deg) scale(1.04);
+  }
+}
+
+@keyframes tomatoHypePop {
+  0%, 100% {
+    transform: translateX(-50%) rotate(-3deg) scale(1);
+  }
+  50% {
+    transform: translateX(-50%) rotate(3deg) scale(1.08);
+  }
+}
+
+@keyframes tomatoBurst {
+  0%, 100% {
+    opacity: 0.46;
+    transform: scale(0.7) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.28) rotate(18deg);
   }
 }
 

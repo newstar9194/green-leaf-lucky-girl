@@ -39,7 +39,7 @@ const MAGNET_DURATION = 12000;
 const MAGNET_STRENGTH = 860;
 const REWARDED_AD_UNIT_PATH = "";
 const ADSENSE_PUBLISHER_ID = "ca-pub-5786432422734713";
-const TOMATO_REFERENCE_IMAGE = "appintoss-assets/tomato-character-reference.jpeg";
+const TOMATO_REFERENCE_IMAGE = "/assets/tomato-character-reference.jpeg";
 
 const BASIC_FORTUNES = [
   "오늘은 작은 웃음 하나가 큰 행운으로 번져요. 먼저 인사하면 마음이 포근해질 거예요.",
@@ -911,7 +911,7 @@ function openCloverFortuneModal() {
   pauseForModal();
   fortuneMode = "clover";
   fortuneModal.classList.remove("hidden");
-  fortuneModal.querySelector(".fortune-box").classList.remove("clover-result");
+  fortuneModal.querySelector(".fortune-box").classList.remove("clover-result", "tomato-result");
   fortuneLabelEl.textContent = "소소한 네잎클로버 운세";
   fortuneTitleEl.innerHTML = "찾았다! 네잎클로버🍀<br>오늘의 행운을 골라봐요!";
   fortuneTextEl.textContent = "귀여운 네잎클로버가 오늘의 작은 행운을 봐줄게요.";
@@ -926,20 +926,20 @@ function openTomatoFortuneModal(fromLuckyTomato = false) {
   pauseForModal();
   fortuneMode = "tomato";
   fortuneModal.classList.remove("hidden");
-  fortuneModal.querySelector(".fortune-box").classList.remove("clover-result");
+  fortuneModal.querySelector(".fortune-box").classList.remove("clover-result", "tomato-result");
   fortuneLabelEl.textContent = fromLuckyTomato ? "대박 사건 발생" : "행운의 토마토 뽑기~!~!";
   fortuneTitleEl.textContent = fromLuckyTomato
-    ? "헉! 777개 전에 행운의 토마토를 만났어요!"
+    ? "헉! 개큰 행운 토마토를 만났어요!"
     : "토마토 카드 1장을 골라요";
   fortuneTextEl.textContent = fromLuckyTomato
     ? "이건 개큰 행운이에요~!~! 토마토 카드 1장을 골라서 오늘의 운세를 바로 봐요!"
     : "멋쟁이 토마토 친구들이 자세한 운세를 준비했어요.";
-  renderFortuneCards(2, "tomato");
+  renderFortuneCards(1, "tomato");
 }
 
 function closeFortuneModal() {
   fortuneModal.classList.add("hidden");
-  fortuneModal.querySelector(".fortune-box").classList.remove("clover-result");
+  fortuneModal.querySelector(".fortune-box").classList.remove("clover-result", "tomato-result");
   if (modalResumeOnClose) running = true;
   modalResumeOnClose = false;
 }
@@ -968,14 +968,7 @@ function pickFortune(cardIndex) {
     showCloverFortuneResult(cardIndex, fortunes[picked]);
     return;
   }
-  fortuneTitleEl.textContent = fortuneMode === "clover"
-    ? `네잎클로버 ${cardIndex + 1}번 먕먕~!!`
-    : `행운의 토마토 ${cardIndex + 1}번~!~!`;
-  fortuneTextEl.textContent = fortunes[picked];
-  [...fortuneCardsEl.querySelectorAll("button")].forEach((button, index) => {
-    button.disabled = true;
-    button.classList.toggle("picked", index === cardIndex);
-  });
+  showTomatoFortuneResult(fortunes[picked]);
 }
 
 function showCloverFortuneResult(cardIndex, fortune) {
@@ -993,6 +986,22 @@ function showCloverFortuneResult(cardIndex, fortune) {
         <div class="clover-leg left"></div>
         <div class="clover-leg right"></div>
       </div>
+    </div>
+  `;
+  fortuneTextEl.textContent = fortune;
+}
+
+function showTomatoFortuneResult(fortune) {
+  const fortuneBox = fortuneModal.querySelector(".fortune-box");
+  fortuneBox.classList.add("tomato-result");
+  fortuneLabelEl.textContent = "개큰 행운 폭발 중";
+  fortuneTitleEl.textContent = "행운의 토마토가 운세를 봐줘요~!~!";
+  fortuneCardsEl.style.setProperty("--card-count", "1");
+  fortuneCardsEl.innerHTML = `
+    <div class="tomato-dance-stage" aria-hidden="true">
+      <div class="tomato-burst"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <img class="dancing-tomato-photo" src="${TOMATO_REFERENCE_IMAGE}" alt="">
+      <div class="tomato-hype">개큰 행운이다~!~!</div>
     </div>
   `;
   fortuneTextEl.textContent = fortune;
