@@ -18,7 +18,7 @@ const fortuneCloseButton = document.querySelector("#fortuneCloseButton");
 const WORLD_WIDTH = 900;
 const WORLD_HEIGHT = 1400;
 const LEAF_RADIUS = 23;
-const CLOVER_CHANCE = 0.024;
+const CLOVER_CHANCE = 0.006;
 const CONTROL_SAFE_ZONE = 230;
 const GROUND_Y = WORLD_HEIGHT - CONTROL_SAFE_ZONE;
 const WIND_DURATION = 5200;
@@ -29,7 +29,7 @@ const MAX_JUMPS = 2;
 const TRIPLE_JUMP_SCORE = 33;
 const FLY_SCORE = 333;
 const FORTUNE_SCORE = 777;
-const CLOVER_FORCE_LEAVES = 18;
+const CLOVER_FORCE_LEAVES = 36;
 const LUCKY_TOMATO_MIN_LEAVES = 100;
 const LUCKY_TOMATO_FORCE_LEAVES = 118;
 const GREEN_DANCE_DURATION = 5200;
@@ -279,7 +279,8 @@ function spawnLeaf(y = -60) {
     && cloverFortuneSeen
     && greenLeafCount >= LUCKY_TOMATO_MIN_LEAVES
     && (greenLeafCount >= LUCKY_TOMATO_FORCE_LEAVES || Math.random() < 0.09);
-  const type = shouldSpawnLuckyTomato ? "tomato" : shouldForceFirstClover || roll < CLOVER_CHANCE ? "clover" : "leaf";
+  const shouldSpawnRareClover = cloverFortuneSeen && roll < CLOVER_CHANCE;
+  const type = shouldSpawnLuckyTomato ? "tomato" : shouldForceFirstClover || shouldSpawnRareClover ? "clover" : "leaf";
   if (type === "tomato") luckyTomatoSpawned = true;
   const fallSpeed = (175 + Math.random() * 95 + Math.min(110, score * 1.4)) * SPEED_MULTIPLIER;
   leaves.push({
