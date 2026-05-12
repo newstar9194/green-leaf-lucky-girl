@@ -397,17 +397,20 @@ function isCloverBoosted(now) {
   return now < cloverBoostUntil;
 }
 
-function startCloverBoost(now = performance.now()) {
+function startCloverBoost(fortune = "", now = performance.now()) {
   cloverBoostUntil = now + CLOVER_BOOST_DURATION;
   luckyStatusEl.textContent = "네잎 클로버의 행운을 받아서 짱짱 커졌어요!";
-  showBoostCaption("네잎 클로버의 행운을 받아서 짱짱 커졌어요!");
+  showBoostCaption("네잎 클로버의 행운을 받아서 짱짱 커졌어요!", fortune);
   burst(player.x, Math.max(150, player.y - 150), "#f7d75b");
   burst(player.x, Math.max(190, player.y - 80), "#5ee088");
   updateHud(now);
 }
 
-function showBoostCaption(message) {
-  boostCaptionEl.innerHTML = `<strong>${message}</strong>`;
+function showBoostCaption(message, fortune = "") {
+  boostCaptionEl.innerHTML = `
+    <strong>${message}</strong>
+    ${fortune ? `<span>${fortune}</span>` : ""}
+  `;
   boostCaptionEl.classList.remove("hidden");
   if (boostCaptionTimer) window.clearTimeout(boostCaptionTimer);
   boostCaptionTimer = window.setTimeout(hideBoostCaption, CLOVER_BOOST_DURATION);
@@ -1038,8 +1041,8 @@ function openCloverFortuneModal() {
   const fortuneBox = fortuneModal.querySelector(".fortune-box");
   fortuneBox.classList.remove("tomato-result", "clover-picker");
   fortuneBox.classList.add("clover-result", "clover-intro");
-  fortuneLabelEl.textContent = "네잎클로버 받았다!";
-  fortuneTitleEl.textContent = "먕먕~!! 네잎클로버 댄스 타임!";
+  fortuneLabelEl.textContent = "";
+  fortuneTitleEl.textContent = "찾았다! 네잎클로버";
   fortuneTextEl.textContent = "";
   renderCloverDanceStage();
   cloverIntroTimer = window.setTimeout(showCloverCardPicker, 2400);
@@ -1153,7 +1156,7 @@ function showCloverFortuneResult(cardIndex, fortune) {
   cloverFortuneSeen = true;
   pendingCloverBoost = false;
   closeFortuneModal();
-  startCloverBoost();
+  startCloverBoost(fortune);
 }
 
 function renderCloverDanceStage() {
@@ -1161,12 +1164,15 @@ function renderCloverDanceStage() {
   fortuneCardsEl.innerHTML = `
     <div class="clover-dance-stage" aria-hidden="true">
       <div class="clover-sparkles"><i></i><i></i><i></i><i></i></div>
+      <div class="clover-dance-floor"></div>
       <div class="dancing-clover">
         <span></span>
         <div class="clover-face-cute"><b class="clover-mouth">ᴗ</b></div>
         <div class="clover-leg left"></div>
         <div class="clover-leg right"></div>
       </div>
+      <div class="clover-dance-bubble one">먕먕~!!</div>
+      <div class="clover-dance-bubble two">룰루</div>
     </div>
   `;
 }
