@@ -17,10 +17,8 @@ const fortuneCloseButton = document.querySelector("#fortuneCloseButton");
 
 const WORLD_WIDTH = 900;
 const WORLD_HEIGHT = 1400;
-const PLAYER_BASE_RADIUS = 34;
 const LEAF_RADIUS = 23;
 const CLOVER_CHANCE = 0.024;
-const LUCKY_DURATION = 7000;
 const CONTROL_SAFE_ZONE = 230;
 const GROUND_Y = WORLD_HEIGHT - CONTROL_SAFE_ZONE;
 const WIND_DURATION = 5200;
@@ -181,10 +179,8 @@ let lastTime = 0;
 let running = false;
 let score = 0;
 let greenLeafCount = 0;
-let nextGreenDanceAt = 100;
 let best = Number(localStorage.getItem("leafLuckyBest") || 0);
 let coins = Number(localStorage.getItem("leafLuckyCoins") || 0);
-let luckyUntil = 0;
 let floatTime = 0;
 let spawnTimer = 0;
 let windUntil = 0;
@@ -248,8 +244,6 @@ function resetGame() {
   running = true;
   score = 0;
   greenLeafCount = 0;
-  nextGreenDanceAt = 100;
-  luckyUntil = 0;
   spawnTimer = 0;
   windUntil = 0;
   nextWindAt = performance.now() + 6000 + Math.random() * 6500;
@@ -318,15 +312,10 @@ function burst(x, y, color) {
   }
 }
 
-function isLucky(now) {
-  return now < luckyUntil;
-}
-
 function updateHud(now) {
   scoreEl.textContent = score;
   bestEl.textContent = best;
-  const lucky = isLucky(now);
-  luckyStatusEl.classList.toggle("lucky", lucky);
+  luckyStatusEl.classList.remove("lucky");
   luckyStatusEl.classList.toggle("windy", isWindy(now));
   if (isFortuneRaining(now)) {
     luckyStatusEl.textContent = "행운 뿌리기";
@@ -338,8 +327,6 @@ function updateHud(now) {
     luckyStatusEl.textContent = "자유 비행";
   } else if (canTripleJump()) {
     luckyStatusEl.textContent = "3단 점프";
-  } else if (lucky) {
-    luckyStatusEl.textContent = `럭키걸 ${Math.ceil((luckyUntil - now) / 1000)}초`;
   } else if (isWindy(now)) {
     luckyStatusEl.textContent = "강풍 조심";
   } else {
@@ -453,7 +440,7 @@ function update(dt, now) {
     spawnTimer = (pace + Math.random() * 0.3) / SPEED_MULTIPLIER;
   }
 
-  const speed = (canFly() ? 520 : isLucky(now) ? 610 : 440) * SPEED_MULTIPLIER;
+  const speed = (canFly() ? 520 : 440) * SPEED_MULTIPLIER;
   const inputLength = Math.hypot(input.x, input.y) || 1;
   player.vx += (clamp(input.x / inputLength, -1, 1) * speed - player.vx) * Math.min(1, dt * 11);
   if (canFly()) {
@@ -477,8 +464,6 @@ function update(dt, now) {
   }
   if (Math.abs(player.vx) > 10) player.face = Math.sign(player.vx);
 
-  let danceStartedThisFrame = false;
-  const playerRadius = isLucky(now) ? 68 : PLAYER_BASE_RADIUS;
   leaves = leaves.filter((leaf) => {
     leaf.spin += dt * (leaf.clover ? 4.6 : 3.2);
     const windPush = isWindy(now) ? windPower + Math.sin(floatTime * 12 + leaf.bob) * 165 : 0;
@@ -503,8 +488,8 @@ function update(dt, now) {
     }
 
     const catchY = getBasketCatchY(now);
-    const catchWidth = isLucky(now) ? 178 : 98;
-    const catchHeight = isLucky(now) ? 70 : 42;
+    const catchWidth = 98;
+    const catchHeight = 42;
     const caught = Math.abs(player.x - leaf.x) < catchWidth && Math.abs(catchY - leaf.y) < catchHeight;
     if (caught) {
       score += leaf.type === "tomato" ? 11 : leaf.clover ? 7 : 1;
@@ -512,7 +497,6 @@ function update(dt, now) {
         greenLeafCount += 1;
       }
       if (leaf.clover) {
-        luckyUntil = now + LUCKY_DURATION;
         openCloverFortuneModal();
       }
       if (leaf.type === "tomato") {
@@ -528,8 +512,6 @@ function update(dt, now) {
     }
     return leaf.y < WORLD_HEIGHT + 90;
   });
-  if (danceStartedThisFrame) leaves = [];
-
   if (!flyAnnounced && score >= FLY_SCORE) {
     flyAnnounced = true;
     burst(player.x, player.y - 120, "#bde9ff");
@@ -635,7 +617,6 @@ function drawCollectible(leaf) {
 }
 
 function drawPlayer(now) {
-  const lucky = isLucky(now);
   const s = getPlayerScale(now);
   const dancing = isDanceTime(now);
   const danceBeat = dancing ? Math.sin(floatTime * 18) : 0;
@@ -650,7 +631,7 @@ function drawPlayer(now) {
   if (dancing) ctx.rotate(Math.sin(floatTime * 14) * 0.22);
   ctx.scale(s * player.face * (dancing ? 1 + Math.abs(danceBeat) * 0.1 : 1), s * (dancing ? 1 - Math.abs(danceBeat) * 0.05 : 1));
 
-  ctx.fillStyle = lucky ? "rgba(246, 207, 79, 0.34)" : "rgba(49, 151, 84, 0.18)";
+  ctx.fillStyle = "rgba(49, 151, 84, 0.18)";
   ctx.beginPath();
   ctx.ellipse(0, 34, 52, 14, 0, 0, Math.PI * 2);
   ctx.fill();
@@ -716,21 +697,11 @@ function drawPlayer(now) {
   drawCheekFlower(-20, -36);
   drawBasket(dancing ? Math.sin(floatTime * 22) * 18 : 0, dancing ? -86 + Math.cos(floatTime * 18) * 12 : -82, now);
 
-  if (lucky) {
-    ctx.fillStyle = "#f7d75b";
-    for (let i = 0; i < 8; i += 1) {
-      const a = floatTime * 1.8 + i * Math.PI / 4;
-      ctx.beginPath();
-      ctx.arc(Math.cos(a) * 43, Math.sin(a) * 43 - 26, 4, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
   ctx.restore();
 }
 
 function getPlayerScale(now) {
-  return isLucky(now) ? 1.85 : 1;
+  return 1;
 }
 
 function getBasketCatchY(now) {
@@ -739,7 +710,7 @@ function getBasketCatchY(now) {
 
 function jump() {
   if (!running || canFly() || player.jumpCount >= getMaxJumps()) return;
-  player.vy = JUMP_VELOCITY * (isLucky(performance.now()) ? 1.08 : 1);
+  player.vy = JUMP_VELOCITY;
   player.grounded = false;
   player.jumpCount += 1;
   burst(player.x, player.y + 28, "#bff7d4");
