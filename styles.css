@@ -186,6 +186,27 @@ button {
   box-shadow: none;
 }
 
+.fortune-box.clover-intro {
+  grid-template-rows: auto auto minmax(260px, 1fr) auto auto;
+}
+
+.fortune-box.clover-intro .label {
+  color: #177445;
+  font-size: 15px;
+}
+
+.fortune-box.clover-intro h2 {
+  margin-bottom: 4px;
+  color: #0f7b44;
+  font-size: clamp(26px, 7vw, 40px);
+  line-height: 1.06;
+  text-shadow: 0 4px 0 rgba(255, 255, 255, 0.7);
+}
+
+.fortune-box.clover-picker {
+  animation: pickerPop 0.24s ease-out;
+}
+
 .fortune-box.tomato-result {
   background:
     radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.72) 0 72px, transparent 74px),
@@ -298,6 +319,35 @@ button {
 
 .clover-result .clover-dance-stage {
   display: grid;
+}
+
+.clover-intro .clover-dance-stage {
+  width: min(86vw, 430px);
+}
+
+.clover-intro .dancing-clover {
+  width: 220px;
+  height: 220px;
+  animation-duration: 0.54s;
+}
+
+.clover-intro .dancing-clover::before,
+.clover-intro .dancing-clover::after,
+.clover-intro .dancing-clover span::before,
+.clover-intro .dancing-clover span::after {
+  width: 112px;
+  height: 112px;
+}
+
+.clover-intro .clover-face-cute {
+  width: 106px;
+  height: 78px;
+  font-size: 42px;
+}
+
+.clover-intro .clover-mouth {
+  top: 46px;
+  font-size: 38px;
 }
 
 .tomato-dance-stage {
@@ -576,6 +626,17 @@ button {
   50% {
     opacity: 1;
     transform: rotate(45deg) scale(1.24);
+  }
+}
+
+@keyframes pickerPop {
+  from {
+    opacity: 0.2;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 

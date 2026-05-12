@@ -928,13 +928,13 @@ function openCloverFortuneModal() {
   fortuneMode = "clover";
   fortuneModal.classList.remove("hidden");
   const fortuneBox = fortuneModal.querySelector(".fortune-box");
-  fortuneBox.classList.remove("tomato-result");
-  fortuneBox.classList.add("clover-result");
-  fortuneLabelEl.textContent = "네잎클로버 등장";
-  fortuneTitleEl.textContent = "찾았다! 네잎클로버가 먕먕 춤춰요!";
-  fortuneTextEl.textContent = "잠깐만요. 귀여운 춤이 끝나면 오늘의 행운 카드를 고를 수 있어요.";
+  fortuneBox.classList.remove("tomato-result", "clover-picker");
+  fortuneBox.classList.add("clover-result", "clover-intro");
+  fortuneLabelEl.textContent = "네잎클로버 받았다!";
+  fortuneTitleEl.textContent = "먕먕~!! 네잎클로버 댄스 타임!";
+  fortuneTextEl.textContent = "지금 춤추는 중이에요. 춤이 끝나면 바로 행운 카드가 나와요.";
   renderCloverDanceStage();
-  cloverIntroTimer = window.setTimeout(showCloverCardPicker, 1700);
+  cloverIntroTimer = window.setTimeout(showCloverCardPicker, 2400);
 }
 
 function openTomatoFortuneModal(fromLuckyTomato = false) {
@@ -959,7 +959,7 @@ function openTomatoFortuneModal(fromLuckyTomato = false) {
 function closeFortuneModal() {
   clearCloverIntroTimer();
   fortuneModal.classList.add("hidden");
-  fortuneModal.querySelector(".fortune-box").classList.remove("clover-result", "tomato-result");
+  fortuneModal.querySelector(".fortune-box").classList.remove("clover-result", "tomato-result", "clover-intro", "clover-picker");
   if (modalResumeOnClose) running = true;
   modalResumeOnClose = false;
 }
@@ -967,7 +967,8 @@ function closeFortuneModal() {
 function showCloverCardPicker() {
   cloverIntroTimer = null;
   const fortuneBox = fortuneModal.querySelector(".fortune-box");
-  fortuneBox.classList.remove("clover-result", "tomato-result");
+  fortuneBox.classList.remove("clover-result", "tomato-result", "clover-intro");
+  fortuneBox.classList.add("clover-picker");
   fortuneLabelEl.textContent = "소소한 네잎클로버 운세";
   fortuneTitleEl.innerHTML = "찾았다! 네잎클로버🍀<br>오늘의 행운을 골라봐요!";
   fortuneTextEl.textContent = "카드 1장을 골라요. 네잎클로버가 오늘의 작은 행운을 봐줄게요.";
@@ -1008,6 +1009,7 @@ function pickTomatoCharacter() {
 
 function showCloverFortuneResult(cardIndex, fortune) {
   const fortuneBox = fortuneModal.querySelector(".fortune-box");
+  fortuneBox.classList.remove("clover-picker", "clover-intro");
   fortuneBox.classList.add("clover-result");
   cloverFortuneSeen = true;
   fortuneLabelEl.textContent = "네잎클로버가 춤추는 중";
