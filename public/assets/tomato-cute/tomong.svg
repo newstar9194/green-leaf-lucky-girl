@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" role="img" aria-label="round gentle tomato character">
+  <defs>
+    <radialGradient id="body" cx="40%" cy="27%" r="74%">
+      <stop offset="0" stop-color="#ffafa0"/>
+      <stop offset=".62" stop-color="#ff6454"/>
+      <stop offset="1" stop-color="#dc332d"/>
+    </radialGradient>
+  </defs>
+  <rect width="300" height="300" rx="46" fill="#fff8d8"/>
+  <circle cx="229" cy="75" r="20" fill="#bdf7c9" opacity=".8"/>
+  <circle cx="72" cy="229" r="24" fill="#fff" opacity=".72"/>
+  <path d="M138 55c-16-29-4-43 14-47 1 22 9 34 26 47z" fill="#51ad6b"/>
+  <path d="M153 67c-25-18-48-17-73 5 21 10 38 16 59 12-14 14-22 31-24 51 22-8 35-21 42-39 9 18 25 30 48 34-3-21-12-36-27-49 24 1 42-8 58-26-27-11-53-6-83 12z" fill="#40c96a" stroke="#166b3c" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M52 154c0-64 46-96 101-96 61 0 102 42 102 99 0 65-46 108-102 108-58 0-101-46-101-111z" fill="url(#body)" stroke="#7d2724" stroke-width="8"/>
+  <path d="M107 147c0 10 10 18 22 18s22-8 22-18M160 147c0 10 10 18 22 18s22-8 22-18" fill="none" stroke="#251514" stroke-width="8" stroke-linecap="round"/>
+  <path d="M134 196c12 10 28 10 40 0" fill="none" stroke="#401917" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="91" cy="180" r="14" fill="#ffb0a2" opacity=".9"/>
+  <circle cx="219" cy="180" r="14" fill="#ffb0a2" opacity=".9"/>
+</svg>

@@ -41,12 +41,12 @@ const MAGNET_STRENGTH = 860;
 const REWARDED_AD_UNIT_PATH = "";
 const ADSENSE_PUBLISHER_ID = "ca-pub-5786432422734713";
 const TOMATO_CHARACTERS = [
-  { name: "토마토", src: "/assets/tomato-characters/tomato.jpeg" },
-  { name: "토링이", src: "/assets/tomato-characters/toring.jpeg" },
-  { name: "토순이", src: "/assets/tomato-characters/tosoon.jpeg" },
-  { name: "토도리", src: "/assets/tomato-characters/todori.jpeg" },
-  { name: "토몽", src: "/assets/tomato-characters/tomong.jpeg" },
-  { name: "방토단", src: "/assets/tomato-characters/bangto.jpeg" },
+  { name: "토마토", src: "/assets/tomato-cute/tomato.svg" },
+  { name: "토링이", src: "/assets/tomato-cute/toring.svg" },
+  { name: "토순이", src: "/assets/tomato-cute/tosoon.svg" },
+  { name: "토도리", src: "/assets/tomato-cute/todori.svg" },
+  { name: "토몽", src: "/assets/tomato-cute/tomong.svg" },
+  { name: "방토단", src: "/assets/tomato-cute/bangto.svg" },
 ];
 
 const BASIC_FORTUNES = [
@@ -210,6 +210,7 @@ let lastTouchEndAt = 0;
 let fortuneMode = "tomato";
 let modalResumeOnClose = false;
 let selectedTomatoCharacter = TOMATO_CHARACTERS[0];
+let cloverIntroTimer = null;
 let bgmContext = null;
 let bgmTimer = null;
 let bgmStep = 0;
@@ -509,11 +510,6 @@ function update(dt, now) {
       score += leaf.type === "tomato" ? 11 : leaf.clover ? 7 : 1;
       if (leaf.type === "leaf") {
         greenLeafCount += 1;
-        if (greenLeafCount >= nextGreenDanceAt) {
-          greenDanceUntil = now + GREEN_DANCE_DURATION;
-          nextGreenDanceAt += 100;
-          danceStartedThisFrame = true;
-        }
       }
       if (leaf.clover) {
         luckyUntil = now + LUCKY_DURATION;
@@ -920,15 +916,25 @@ function pauseForModal() {
   running = false;
 }
 
+function clearCloverIntroTimer() {
+  if (!cloverIntroTimer) return;
+  window.clearTimeout(cloverIntroTimer);
+  cloverIntroTimer = null;
+}
+
 function openCloverFortuneModal() {
   pauseForModal();
+  clearCloverIntroTimer();
   fortuneMode = "clover";
   fortuneModal.classList.remove("hidden");
-  fortuneModal.querySelector(".fortune-box").classList.remove("clover-result", "tomato-result");
-  fortuneLabelEl.textContent = "소소한 네잎클로버 운세";
-  fortuneTitleEl.innerHTML = "찾았다! 네잎클로버🍀<br>오늘의 행운을 골라봐요!";
-  fortuneTextEl.textContent = "귀여운 네잎클로버가 오늘의 작은 행운을 봐줄게요.";
-  renderFortuneCards(3, "clover");
+  const fortuneBox = fortuneModal.querySelector(".fortune-box");
+  fortuneBox.classList.remove("tomato-result");
+  fortuneBox.classList.add("clover-result");
+  fortuneLabelEl.textContent = "네잎클로버 등장";
+  fortuneTitleEl.textContent = "찾았다! 네잎클로버가 먕먕 춤춰요!";
+  fortuneTextEl.textContent = "잠깐만요. 귀여운 춤이 끝나면 오늘의 행운 카드를 고를 수 있어요.";
+  renderCloverDanceStage();
+  cloverIntroTimer = window.setTimeout(showCloverCardPicker, 1700);
 }
 
 function openTomatoFortuneModal(fromLuckyTomato = false) {
@@ -951,10 +957,21 @@ function openTomatoFortuneModal(fromLuckyTomato = false) {
 }
 
 function closeFortuneModal() {
+  clearCloverIntroTimer();
   fortuneModal.classList.add("hidden");
   fortuneModal.querySelector(".fortune-box").classList.remove("clover-result", "tomato-result");
   if (modalResumeOnClose) running = true;
   modalResumeOnClose = false;
+}
+
+function showCloverCardPicker() {
+  cloverIntroTimer = null;
+  const fortuneBox = fortuneModal.querySelector(".fortune-box");
+  fortuneBox.classList.remove("clover-result", "tomato-result");
+  fortuneLabelEl.textContent = "소소한 네잎클로버 운세";
+  fortuneTitleEl.innerHTML = "찾았다! 네잎클로버🍀<br>오늘의 행운을 골라봐요!";
+  fortuneTextEl.textContent = "카드 1장을 골라요. 네잎클로버가 오늘의 작은 행운을 봐줄게요.";
+  renderFortuneCards(3, "clover");
 }
 
 function renderFortuneCards(count, mode) {
@@ -995,6 +1012,11 @@ function showCloverFortuneResult(cardIndex, fortune) {
   cloverFortuneSeen = true;
   fortuneLabelEl.textContent = "네잎클로버가 춤추는 중";
   fortuneTitleEl.textContent = `행운 ${cardIndex + 1}번을 골랐어요!`;
+  renderCloverDanceStage();
+  fortuneTextEl.textContent = fortune;
+}
+
+function renderCloverDanceStage() {
   fortuneCardsEl.style.setProperty("--card-count", "1");
   fortuneCardsEl.innerHTML = `
     <div class="clover-dance-stage" aria-hidden="true">
@@ -1007,7 +1029,6 @@ function showCloverFortuneResult(cardIndex, fortune) {
       </div>
     </div>
   `;
-  fortuneTextEl.textContent = fortune;
 }
 
 function showTomatoFortuneResult(fortune) {

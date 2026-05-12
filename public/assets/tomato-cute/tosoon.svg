@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" role="img" aria-label="cute tomato with round ears">
+  <defs>
+    <radialGradient id="body" cx="40%" cy="32%" r="72%">
+      <stop offset="0" stop-color="#ffaaa0"/>
+      <stop offset=".6" stop-color="#ff6254"/>
+      <stop offset="1" stop-color="#de312b"/>
+    </radialGradient>
+  </defs>
+  <rect width="300" height="300" rx="46" fill="#fff0df"/>
+  <circle cx="75" cy="116" r="35" fill="#ff7060" stroke="#7d2724" stroke-width="8"/>
+  <circle cx="224" cy="116" r="35" fill="#ff7060" stroke="#7d2724" stroke-width="8"/>
+  <path d="M138 53c-14-29-2-43 16-45 0 21 9 34 25 47z" fill="#4aa765"/>
+  <path d="M154 66c-25-18-49-17-72 4 20 10 36 17 58 12-13 14-21 31-22 51 21-8 34-21 40-39 9 18 25 31 48 34-3-21-12-36-26-49 22 1 41-7 56-25-27-12-52-6-82 12z" fill="#42c970" stroke="#166b3c" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M58 153c0-58 45-88 96-88 56 0 96 39 96 92 0 60-43 100-96 100-55 0-96-42-96-104z" fill="url(#body)" stroke="#7d2724" stroke-width="8"/>
+  <circle cx="111" cy="145" r="20" fill="#fff8ee"/>
+  <circle cx="195" cy="145" r="20" fill="#fff8ee"/>
+  <circle cx="111" cy="145" r="8" fill="#222"/>
+  <circle cx="195" cy="145" r="8" fill="#222"/>
+  <path d="M135 188c11 10 26 10 37 0" fill="none" stroke="#401917" stroke-width="8" stroke-linecap="round"/>
+  <path d="M76 210c-20 14-22 33-5 48M231 210c22 13 25 31 8 49" fill="none" stroke="#7d2724" stroke-width="8" stroke-linecap="round"/>
+</svg>

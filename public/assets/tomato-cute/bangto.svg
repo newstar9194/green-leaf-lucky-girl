@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" role="img" aria-label="tiny tomato friends">
+  <rect width="300" height="300" rx="46" fill="#fff4cd"/>
+  <circle cx="52" cy="66" r="16" fill="#fff" opacity=".8"/>
+  <circle cx="247" cy="226" r="24" fill="#bdf4c9" opacity=".7"/>
+  <g stroke="#7d2724" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(50 88)">
+      <path d="M42 2c-8-16-2-24 8-25 1 12 6 19 16 26z" fill="#49ad66"/>
+      <path d="M52 10c-14-10-28-9-41 4 12 5 22 8 33 6-8 8-12 17-13 28 12-5 20-12 24-23 5 11 14 18 27 20-2-12-7-20-16-28 13 1 24-4 33-14-16-7-30-4-47 7z" fill="#43c96d"/>
+      <circle cx="52" cy="71" r="45" fill="#ff6353"/>
+      <circle cx="36" cy="64" r="7" fill="#222" stroke="none"/>
+      <circle cx="67" cy="64" r="7" fill="#222" stroke="none"/>
+      <path d="M40 84c8 8 17 8 25 0" fill="none"/>
+    </g>
+    <g transform="translate(138 106) scale(.88)">
+      <path d="M42 2c-8-16-2-24 8-25 1 12 6 19 16 26z" fill="#49ad66"/>
+      <path d="M52 10c-14-10-28-9-41 4 12 5 22 8 33 6-8 8-12 17-13 28 12-5 20-12 24-23 5 11 14 18 27 20-2-12-7-20-16-28 13 1 24-4 33-14-16-7-30-4-47 7z" fill="#43c96d"/>
+      <circle cx="52" cy="71" r="45" fill="#ff6f5f"/>
+      <path d="M30 61c10-9 20-9 30 0M68 61c10-9 20-9 30 0" fill="none"/>
+      <path d="M42 84c7 7 16 7 23 0" fill="none"/>
+    </g>
+    <g transform="translate(104 168) scale(.78)">
+      <path d="M42 2c-8-16-2-24 8-25 1 12 6 19 16 26z" fill="#49ad66"/>
+      <path d="M52 10c-14-10-28-9-41 4 12 5 22 8 33 6-8 8-12 17-13 28 12-5 20-12 24-23 5 11 14 18 27 20-2-12-7-20-16-28 13 1 24-4 33-14-16-7-30-4-47 7z" fill="#43c96d"/>
+      <circle cx="52" cy="71" r="45" fill="#ff584c"/>
+      <circle cx="36" cy="64" r="7" fill="#222" stroke="none"/>
+      <circle cx="67" cy="64" r="7" fill="#222" stroke="none"/>
+      <path d="M40 84c8 8 17 8 25 0" fill="none"/>
+    </g>
+  </g>
+</svg>
