@@ -5,7 +5,6 @@ const bestEl = document.querySelector("#best");
 const luckyStatusEl = document.querySelector("#luckyStatus");
 const startOverlay = document.querySelector("#startOverlay");
 const startButton = document.querySelector("#startButton");
-const adButton = document.querySelector("#adButton");
 const magnetButton = document.querySelector("#magnetButton");
 const fortuneButton = document.querySelector("#fortuneButton");
 const fortuneModal = document.querySelector("#fortuneModal");
@@ -31,15 +30,14 @@ const TRIPLE_JUMP_SCORE = 33;
 const FLY_SCORE = 333;
 const FORTUNE_SCORE = 777;
 const CLOVER_FORCE_LEAVES = 36;
-const CLOVER_BOOST_DURATION = 5000;
-const LUCKY_TOMATO_MIN_LEAVES = 100;
-const LUCKY_TOMATO_FORCE_LEAVES = 118;
+const CLOVER_BOOST_DURATION = 3000;
+const LUCKY_TOMATO_MIN_LEAVES = 77;
+const LUCKY_TOMATO_FORCE_LEAVES = 77;
+const MAGNET_LEAF_REWARD = 30;
 const GREEN_DANCE_DURATION = 5200;
 const FORTUNE_RAIN_DURATION = 7200;
 const MAGNET_DURATION = 12000;
 const MAGNET_STRENGTH = 860;
-const REWARDED_AD_UNIT_PATH = "";
-const ADSENSE_PUBLISHER_ID = "ca-pub-5786432422734713";
 const TOMATO_CHARACTERS = [
   { name: "토마토마", src: "/assets/tomato-cute/tomato.svg" },
   { name: "토링이", src: "/assets/tomato-cute/toring.svg" },
@@ -185,6 +183,7 @@ let score = 0;
 let greenLeafCount = 0;
 let best = Number(localStorage.getItem("leafLuckyBest") || 0);
 let coins = Number(localStorage.getItem("leafLuckyCoins") || 0);
+let nextMagnetRewardAt = MAGNET_LEAF_REWARD;
 let floatTime = 0;
 let spawnTimer = 0;
 let windUntil = 0;
@@ -200,7 +199,6 @@ let fortuneUnlocked = false;
 let luckyTomatoSpawned = false;
 let luckyTomatoMet = false;
 let cloverFortuneSeen = false;
-let adLoading = false;
 let confetti = [];
 let leaves = [];
 let keyState = new Set();
@@ -209,6 +207,7 @@ let lastTouchEndAt = 0;
 let fortuneMode = "tomato";
 let modalResumeOnClose = false;
 let pendingCloverBoost = false;
+let pendingCloverBoostFortune = "";
 let selectedTomatoCharacter = TOMATO_CHARACTERS[0];
 let selectedTomatoCards = TOMATO_CHARACTERS.slice(0, 2);
 let cloverIntroTimer = null;
@@ -284,6 +283,7 @@ function resetGame() {
   running = true;
   score = 0;
   greenLeafCount = 0;
+  nextMagnetRewardAt = MAGNET_LEAF_REWARD;
   spawnTimer = 0;
   windUntil = 0;
   nextWindAt = performance.now() + 6000 + Math.random() * 6500;
@@ -299,6 +299,7 @@ function resetGame() {
   luckyTomatoMet = false;
   cloverFortuneSeen = false;
   pendingCloverBoost = false;
+  pendingCloverBoostFortune = "";
   selectedTomatoCharacter = TOMATO_CHARACTERS[0];
   selectedTomatoCards = TOMATO_CHARACTERS.slice(0, 2);
   hideBoostCaption();
@@ -372,7 +373,7 @@ function updateHud(now) {
   if (isFortuneRaining(now)) {
     luckyStatusEl.textContent = "행운 뿌리기";
   } else if (cloverBoosted) {
-    luckyStatusEl.textContent = "네잎 클로버의 행운을 받아서 짱짱 커졌어요!";
+    luckyStatusEl.textContent = "행운의 네잎클로버를 받아서 몸이 커졌어요!!";
   } else if (isGreenDancing(now)) {
     luckyStatusEl.textContent = "초록짱짱 댄스";
   } else if (isMagnetActive(now)) {
@@ -399,8 +400,8 @@ function isCloverBoosted(now) {
 
 function startCloverBoost(fortune = "", now = performance.now()) {
   cloverBoostUntil = now + CLOVER_BOOST_DURATION;
-  luckyStatusEl.textContent = "네잎 클로버의 행운을 받아서 짱짱 커졌어요!";
-  showBoostCaption("네잎 클로버의 행운을 받아서 짱짱 커졌어요!", fortune);
+  luckyStatusEl.textContent = "행운의 네잎클로버를 받아서 몸이 커졌어요!!";
+  showBoostCaption("행운의 네잎클로버를 받아서 몸이 커졌어요!!", fortune);
   burst(player.x, Math.max(150, player.y - 150), "#f7d75b");
   burst(player.x, Math.max(190, player.y - 80), "#5ee088");
   updateHud(now);
@@ -469,7 +470,6 @@ function updateActionPanel(now) {
   magnetButton.disabled = coins <= 0 && !isMagnetActive(now);
   fortuneButton.disabled = !canDrawFortune();
   fortuneButton.textContent = canDrawFortune() ? "토마토 운세" : `${greenLeafCount}/777 운세`;
-  adButton.textContent = adLoading ? "광고 준비중" : `광고보기 · 코인 ${coins}`;
 }
 
 function update(dt, now) {
@@ -567,6 +567,13 @@ function update(dt, now) {
       score += leaf.type === "tomato" ? 11 : leaf.clover ? 7 : 1;
       if (leaf.type === "leaf") {
         greenLeafCount += 1;
+        while (greenLeafCount >= nextMagnetRewardAt) {
+          coins += 1;
+          nextMagnetRewardAt += MAGNET_LEAF_REWARD;
+          localStorage.setItem("leafLuckyCoins", String(coins));
+          luckyStatusEl.textContent = "자석 1개 획득!";
+          burst(player.x, catchY, "#7df2a0");
+        }
       }
       if (leaf.clover) {
         openCloverFortuneModal();
@@ -912,18 +919,11 @@ function playNoise(startAt, duration, gainValue) {
   source.start(startAt);
 }
 
-function grantCoin() {
-  coins += 1;
-  localStorage.setItem("leafLuckyCoins", String(coins));
-  burst(player.x || WORLD_WIDTH / 2, Math.max(180, player.y - 160 || GROUND_Y - 160), "#f7d75b");
-  updateActionPanel(performance.now());
-}
-
 function useMagnet() {
   const now = performance.now();
   if (isMagnetActive(now)) return;
   if (coins <= 0) {
-    luckyStatusEl.textContent = "코인이 필요해요";
+    luckyStatusEl.textContent = "초록잎 30개마다 자석이 생겨요";
     return;
   }
   coins -= 1;
@@ -931,86 +931,6 @@ function useMagnet() {
   magnetUntil = now + MAGNET_DURATION;
   burst(player.x, getBasketCatchY(now), "#7df2a0");
   updateHud(now);
-}
-
-function showRewardedAd() {
-  if (adLoading) return;
-  if (!REWARDED_AD_UNIT_PATH) {
-    luckyStatusEl.textContent = "테스트 코인 지급";
-    grantCoin();
-    alert(`AdSense 계정(${ADSENSE_PUBLISHER_ID})은 연결되어 있어요. 다만 게임 버튼을 누르고 코인을 지급하는 리워드 광고는 Google Ad Manager의 rewarded web 경로가 필요합니다. 지금은 테스트 코인 1개를 지급했어요.`);
-    return;
-  }
-
-  adLoading = true;
-  updateActionPanel(performance.now());
-  loadGooglePublisherTag()
-    .then(() => requestRewardedAd())
-    .catch(() => {
-      adLoading = false;
-      luckyStatusEl.textContent = "광고 로드 실패";
-      updateActionPanel(performance.now());
-    });
-}
-
-function loadGooglePublisherTag() {
-  return new Promise((resolve, reject) => {
-    if (window.googletag?.apiReady) {
-      resolve();
-      return;
-    }
-    window.googletag = window.googletag || { cmd: [] };
-    const existing = document.querySelector("script[data-gpt]");
-    if (existing) {
-      existing.addEventListener("load", resolve, { once: true });
-      existing.addEventListener("error", reject, { once: true });
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = "https://securepubads.g.doubleclick.net/tag/js/gpt.js";
-    script.async = true;
-    script.dataset.gpt = "true";
-    script.onload = resolve;
-    script.onerror = reject;
-    document.head.appendChild(script);
-  });
-}
-
-function requestRewardedAd() {
-  window.googletag.cmd.push(() => {
-    let rewardedSlot = window.googletag.defineOutOfPageSlot(
-      REWARDED_AD_UNIT_PATH,
-      window.googletag.enums.OutOfPageFormat.REWARDED
-    );
-    if (!rewardedSlot) {
-      adLoading = false;
-      luckyStatusEl.textContent = "광고 없음";
-      updateActionPanel(performance.now());
-      return;
-    }
-
-    rewardedSlot.addService(window.googletag.pubads());
-    window.googletag.enableServices();
-    let granted = false;
-
-    window.googletag.pubads().addEventListener("rewardedSlotReady", (event) => {
-      if (event.slot !== rewardedSlot) return;
-      event.makeRewardedVisible();
-    });
-    window.googletag.pubads().addEventListener("rewardedSlotGranted", (event) => {
-      if (event.slot !== rewardedSlot || granted) return;
-      granted = true;
-      grantCoin();
-    });
-    window.googletag.pubads().addEventListener("rewardedSlotClosed", (event) => {
-      if (event.slot !== rewardedSlot) return;
-      window.googletag.destroySlots([rewardedSlot]);
-      rewardedSlot = null;
-      adLoading = false;
-      updateActionPanel(performance.now());
-    });
-    window.googletag.display(rewardedSlot);
-  });
 }
 
 function pauseForModal() {
@@ -1036,10 +956,11 @@ function openCloverFortuneModal() {
   clearTomatoIntroTimer();
   fortuneMode = "clover";
   pendingCloverBoost = false;
+  pendingCloverBoostFortune = "";
   fortuneModal.classList.remove("hidden");
   fortuneCloseButton.textContent = "닫기";
   const fortuneBox = fortuneModal.querySelector(".fortune-box");
-  fortuneBox.classList.remove("tomato-result", "clover-picker");
+  fortuneBox.classList.remove("tomato-result", "tomato-intro", "tomato-picker", "clover-picker", "clover-fortune-result");
   fortuneBox.classList.add("clover-result", "clover-intro");
   fortuneLabelEl.textContent = "";
   fortuneTitleEl.textContent = "찾았다! 네잎클로버";
@@ -1058,10 +979,11 @@ function openTomatoFortuneModal(fromLuckyTomato = false) {
   clearTomatoIntroTimer();
   fortuneMode = "tomato";
   pendingCloverBoost = false;
+  pendingCloverBoostFortune = "";
   fortuneModal.classList.remove("hidden");
   fortuneCloseButton.textContent = "닫기";
   const fortuneBox = fortuneModal.querySelector(".fortune-box");
-  fortuneBox.classList.remove("clover-result", "clover-intro", "clover-picker", "tomato-picker");
+  fortuneBox.classList.remove("clover-result", "clover-intro", "clover-picker", "clover-fortune-result", "tomato-picker");
   fortuneBox.classList.add("tomato-result", "tomato-intro");
   fortuneLabelEl.textContent = fromLuckyTomato ? "토마토 파티 발생" : "행운의 토마토 파티~!~!";
   fortuneTitleEl.textContent = "방토단이 우르르 춤춰요!";
@@ -1076,18 +998,20 @@ function closeFortuneModal() {
   clearCloverIntroTimer();
   clearTomatoIntroTimer();
   const shouldStartCloverBoost = pendingCloverBoost;
+  const boostFortune = pendingCloverBoostFortune;
   pendingCloverBoost = false;
+  pendingCloverBoostFortune = "";
   fortuneModal.classList.add("hidden");
-  fortuneModal.querySelector(".fortune-box").classList.remove("clover-result", "tomato-result", "clover-intro", "clover-picker", "tomato-intro", "tomato-picker");
+  fortuneModal.querySelector(".fortune-box").classList.remove("clover-result", "tomato-result", "clover-intro", "clover-picker", "clover-fortune-result", "tomato-intro", "tomato-picker");
   if (modalResumeOnClose) running = true;
   modalResumeOnClose = false;
-  if (shouldStartCloverBoost) startCloverBoost();
+  if (shouldStartCloverBoost) startCloverBoost(boostFortune);
 }
 
 function showCloverCardPicker() {
   cloverIntroTimer = null;
   const fortuneBox = fortuneModal.querySelector(".fortune-box");
-  fortuneBox.classList.remove("clover-result", "tomato-result", "clover-intro");
+  fortuneBox.classList.remove("clover-result", "tomato-result", "clover-intro", "clover-fortune-result");
   fortuneBox.classList.add("clover-picker");
   fortuneLabelEl.textContent = "소소한 네잎클로버 운세";
   fortuneCloseButton.textContent = "닫기";
@@ -1154,18 +1078,50 @@ function pickRandomTomatoCards() {
 
 function showCloverFortuneResult(cardIndex, fortune) {
   cloverFortuneSeen = true;
-  pendingCloverBoost = false;
-  closeFortuneModal();
-  startCloverBoost(fortune);
+  pendingCloverBoost = true;
+  pendingCloverBoostFortune = fortune;
+  const fortuneBox = fortuneModal.querySelector(".fortune-box");
+  fortuneBox.classList.remove("clover-picker", "clover-intro", "tomato-result", "tomato-picker");
+  fortuneBox.classList.add("clover-result", "clover-fortune-result");
+  fortuneCloseButton.textContent = "운세 받고 닫기";
+  fortuneLabelEl.textContent = "오늘의 네잎클로버 운세";
+  fortuneTitleEl.textContent = `${cardIndex + 1}번 행운을 골랐어요`;
+  fortuneCardsEl.style.setProperty("--card-count", "1");
+  fortuneCardsEl.innerHTML = `
+    <div class="clover-result-charm" aria-hidden="true">
+      <div class="clover-sparkles"><i></i><i></i><i></i><i></i></div>
+      <div class="dancing-clover">
+        <span></span>
+        <div class="clover-face-cute"><b class="clover-mouth">ᴗ</b></div>
+        <div class="clover-leg left"></div>
+        <div class="clover-leg right"></div>
+      </div>
+      <div class="clover-dance-bubble one">먕먕~!!</div>
+    </div>
+  `;
+  fortuneTextEl.textContent = fortune;
 }
 
 function renderCloverDanceStage() {
   fortuneCardsEl.style.setProperty("--card-count", "1");
   fortuneCardsEl.innerHTML = `
     <div class="clover-dance-stage" aria-hidden="true">
+      <div class="clover-party-rays"></div>
       <div class="clover-sparkles"><i></i><i></i><i></i><i></i></div>
       <div class="clover-dance-floor"></div>
+      <div class="dancing-clover side left">
+        <span></span>
+        <div class="clover-face-cute"><b class="clover-mouth">ᴗ</b></div>
+        <div class="clover-leg left"></div>
+        <div class="clover-leg right"></div>
+      </div>
       <div class="dancing-clover">
+        <span></span>
+        <div class="clover-face-cute"><b class="clover-mouth">ᴗ</b></div>
+        <div class="clover-leg left"></div>
+        <div class="clover-leg right"></div>
+      </div>
+      <div class="dancing-clover side right">
         <span></span>
         <div class="clover-face-cute"><b class="clover-mouth">ᴗ</b></div>
         <div class="clover-leg left"></div>
@@ -1605,7 +1561,6 @@ startButton.addEventListener("click", () => {
   startOverlay.classList.add("hidden");
   resetGame();
 });
-adButton.addEventListener("click", showRewardedAd);
 magnetButton.addEventListener("click", useMagnet);
 fortuneButton.addEventListener("click", openTomatoFortuneModal);
 fortuneCloseButton.addEventListener("click", closeFortuneModal);
