@@ -113,6 +113,9 @@ button {
 
 .action-panel button,
 .fortune-box button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 44px;
   padding: 0 8px;
   border: 2px solid rgba(255, 255, 255, 0.88);
@@ -123,6 +126,7 @@ button {
   font-weight: 900;
   box-shadow: 0 7px 14px rgba(41, 105, 71, 0.16);
   backdrop-filter: blur(8px);
+  white-space: nowrap;
 }
 
 .action-panel button:disabled {
@@ -288,6 +292,12 @@ button {
   background: linear-gradient(145deg, #fff9c9, #ffd5c9);
 }
 
+#fortuneCloseButton {
+  min-width: 112px;
+  padding: 0 18px;
+  justify-self: center;
+}
+
 .fortune-cards button.clover-card {
   color: #207143;
   background: linear-gradient(145deg, #edffcf, #baf7cf);
@@ -325,12 +335,6 @@ button {
   box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.5);
 }
 
-.clover-face {
-  display: grid;
-  place-items: center;
-  font-size: 38px;
-}
-
 .card-sound {
   position: relative;
   z-index: 1;
@@ -340,7 +344,6 @@ button {
 }
 
 .tomato-card .card-face {
-  --card-tilt: -2deg;
   position: relative;
   z-index: 1;
   width: 88px;
@@ -348,13 +351,93 @@ button {
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.74);
   filter: drop-shadow(0 8px 10px rgba(143, 39, 32, 0.16));
-  transform-origin: 50% 82%;
-  animation: tomatoCardCharacterDance 0.72s ease-in-out infinite;
+  transform: rotate(-2deg);
 }
 
 .tomato-card:nth-child(2) .card-face {
-  --card-tilt: 2deg;
-  animation-delay: 0.14s;
+  transform: rotate(2deg);
+}
+
+.clover-card-face {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: visible;
+  border-radius: 24px;
+  background: radial-gradient(circle at 50% 42%, #f4ffe9 0 23px, #d8ffbd 24px 100%);
+}
+
+.clover-card-face::before,
+.clover-card-face::after,
+.clover-card-face span::before,
+.clover-card-face span::after {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  border: 2px solid rgba(17, 101, 54, 0.82);
+  border-radius: 58% 58% 52% 52%;
+  background: #42dc70;
+  content: "";
+  box-shadow: inset 5px 6px 0 rgba(255, 255, 255, 0.32);
+}
+
+.clover-card-face::before {
+  left: 12px;
+  top: 10px;
+  transform: rotate(-28deg);
+}
+
+.clover-card-face::after {
+  right: 12px;
+  top: 10px;
+  transform: rotate(28deg);
+}
+
+.clover-card-face span::before {
+  left: 12px;
+  bottom: 10px;
+  transform: rotate(28deg);
+}
+
+.clover-card-face span::after {
+  right: 12px;
+  bottom: 10px;
+  transform: rotate(-28deg);
+}
+
+.clover-card-face b {
+  position: relative;
+  z-index: 2;
+  width: 42px;
+  height: 32px;
+  border-bottom: 3px solid #123d2a;
+  border-radius: 0 0 20px 20px;
+  color: #0f5832;
+  font-size: 0;
+}
+
+.clover-card-face b::before,
+.clover-card-face b::after {
+  position: absolute;
+  top: 8px;
+  width: 7px;
+  height: 9px;
+  border-radius: 999px;
+  background: #123d2a;
+  content: "";
+}
+
+.clover-card-face b::before {
+  left: 8px;
+}
+
+.clover-card-face b::after {
+  right: 8px;
+}
+
+.clover-card-face span {
+  position: absolute;
+  inset: 0;
 }
 
 .tomato-card-caption {
@@ -417,9 +500,10 @@ button {
 .clover-dance-stage {
   position: relative;
   display: none;
-  width: min(82vw, 360px);
+  width: min(92vw, 460px);
   aspect-ratio: 1;
   place-items: center;
+  overflow: hidden;
 }
 
 .clover-result .clover-dance-stage {
@@ -433,36 +517,38 @@ button {
 .clover-party-rays {
   position: absolute;
   inset: 0;
+  z-index: 0;
   border-radius: 50%;
   background:
-    conic-gradient(from 0deg, rgba(255, 255, 255, 0.58), rgba(198, 255, 112, 0.52), rgba(72, 214, 118, 0.38), rgba(255, 244, 126, 0.5), rgba(255, 255, 255, 0.58));
-  animation: tomatoRaysSpin 5.5s linear infinite;
+    conic-gradient(from 0deg, rgba(255, 255, 255, 0.62), rgba(198, 255, 112, 0.62), rgba(72, 214, 118, 0.5), rgba(255, 244, 126, 0.58), rgba(255, 255, 255, 0.62));
+  animation: tomatoRaysSpin 3.4s linear infinite;
 }
 
 .clover-intro .dancing-clover {
   z-index: 2;
-  width: 220px;
-  height: 220px;
-  animation-name: cloverBigDance;
-  animation-duration: 0.46s;
+  width: 230px;
+  height: 230px;
+  filter: drop-shadow(0 18px 14px rgba(26, 112, 55, 0.22));
+  animation-name: cloverPartyDance;
+  animation-duration: 0.44s;
 }
 
 .clover-intro .dancing-clover.side {
   position: absolute;
-  bottom: 26%;
-  width: 118px;
-  height: 118px;
-  animation-duration: 0.58s;
+  bottom: 20%;
+  width: 128px;
+  height: 128px;
+  animation-duration: 0.5s;
   opacity: 0.92;
 }
 
 .clover-intro .dancing-clover.side.left {
-  left: 7%;
+  left: 4%;
   animation-delay: 0.12s;
 }
 
 .clover-intro .dancing-clover.side.right {
-  right: 7%;
+  right: 4%;
   animation-delay: 0.24s;
 }
 
@@ -508,12 +594,13 @@ button {
 .clover-dance-floor {
   position: absolute;
   left: 50%;
-  bottom: 18%;
-  width: 70%;
-  height: 54px;
+  bottom: 15%;
+  width: 78%;
+  height: 66px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.5);
   transform: translateX(-50%);
+  box-shadow: inset 0 9px 0 rgba(255, 255, 255, 0.36);
 }
 
 .clover-dance-bubble {
@@ -541,12 +628,55 @@ button {
   animation-delay: 0.24s;
 }
 
+.clover-dance-bubble.three {
+  left: 40%;
+  top: 8%;
+  animation-delay: 0.42s;
+}
+
+.clover-note {
+  position: absolute;
+  z-index: 3;
+  color: #fffdf0;
+  font-size: 34px;
+  font-weight: 900;
+  text-shadow: 0 4px 0 rgba(27, 118, 65, 0.32);
+  animation: bangtoNoteFloat 0.9s ease-in-out infinite;
+}
+
+.clover-note.a {
+  left: 13%;
+  top: 18%;
+}
+
+.clover-note.b {
+  right: 14%;
+  top: 20%;
+  animation-delay: 0.18s;
+}
+
+.clover-note.c {
+  left: 48%;
+  bottom: 17%;
+  animation-delay: 0.36s;
+}
+
 .clover-result-charm {
   position: relative;
   display: grid;
   width: min(72vw, 280px);
   min-height: 220px;
   place-items: center;
+  overflow: hidden;
+}
+
+.clover-result-charm .clover-party-rays {
+  opacity: 0.5;
+}
+
+.clover-result-charm .dancing-clover {
+  z-index: 2;
+  animation-duration: 0.58s;
 }
 
 .clover-fortune-result #fortuneText {
@@ -922,6 +1052,24 @@ button {
   }
 }
 
+@keyframes cloverPartyDance {
+  0%, 100% {
+    transform: translate(0, 0) rotate(-9deg) scale(1);
+  }
+  20% {
+    transform: translate(-30px, -34px) rotate(13deg) scale(1.1);
+  }
+  40% {
+    transform: translate(26px, -18px) rotate(-15deg) scale(1.03);
+  }
+  60% {
+    transform: translate(-18px, -40px) rotate(16deg) scale(1.12);
+  }
+  80% {
+    transform: translate(22px, -22px) rotate(-10deg) scale(1.06);
+  }
+}
+
 @keyframes cloverBubble {
   0%, 100% {
     transform: translateY(0) rotate(-4deg) scale(0.96);
@@ -1012,15 +1160,6 @@ button {
   50% {
     opacity: 1;
     transform: scale(1.02) rotate(1deg);
-  }
-}
-
-@keyframes tomatoCardCharacterDance {
-  0%, 100% {
-    transform: translateY(0) rotate(var(--card-tilt)) scale(1);
-  }
-  50% {
-    transform: translateY(-9px) rotate(calc(var(--card-tilt) * -1)) scale(1.07);
   }
 }
 
